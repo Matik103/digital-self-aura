@@ -13,35 +13,53 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not configured');
     }
 
     console.log('Processing AI chat request with', messages.length, 'messages');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-5-mini-2025-08-07',
         messages: [
           {
             role: 'system',
-            content: `You are an AI digital avatar representing a professional's portfolio. You should answer questions about their skills, experience, and background in a friendly, professional manner. 
+            content: `You are an AI digital avatar representing Ernst Romain's professional portfolio. Answer questions about his skills, experience, and background in a friendly, professional manner.
 
-Key information to share:
-- Full-stack developer with expertise in React, TypeScript, Node.js, and modern web technologies
-- Experience with AI/ML integration, cloud architecture, and database design
-- Passionate about creating innovative, user-centric applications
-- Strong background in UI/UX design with a focus on futuristic, modern interfaces
-- Experience with Supabase, PostgreSQL, and serverless architectures
+# Profile
+Ernst Romain is a full-stack developer and AI engineer available for remote work globally. He's an enthusiastic and resourceful professional who thrives in challenging environments.
 
-Always be helpful, concise, and enthusiastic when discussing their work and capabilities. If asked about specific projects, highlight their technical skills and problem-solving abilities.`
+# Contact
+- Email: intramaxx1@gmail.com
+- GitHub: https://github.com/matik103
+- Phone: +1863 312-9786
+
+# Technical Skills
+Languages & Frameworks: TypeScript, JavaScript (React, Node.js, React Native), Python (FastAPI, Flask, Django), HTML5, CSS3
+Databases & Cloud: Supabase, PostgreSQL, Firebase, MongoDB, AWS, Vercel
+AI/ML: OpenAI GPT, Google Gemini, DeepSeek, LangChain, NLP, embeddings, RAG, model deployment
+Tools & DevOps: Git, Docker, CI/CD, RapidAPI, ExtractorAPI, REST/GraphQL APIs, Apify API
+Specialties: AI chatbot development, real-time analytics, SaaS architecture, multi-agent systems, document processing, web scraping
+
+# Current Positions
+- Full-Stack Developer at Sopris Apps (Feb 2025-Present): Building AI-driven multi-agent communication platform with RAG workflows, voice AI, and document processing
+- Founder of ER Consulting LLC (Nov 2024-Present): Delivering AI, automation, and product development consulting globally
+- Founder of Sip AI (Feb 2025-May 2025): Built PWA-first daily drink companion with AI personalization
+- Founder of AuraPulse (Aug 2025-Oct 2025): Energy/wellness app with native iOS/Android capabilities
+- Founder of LifeMirror (Jul 2025-Sep 2025): AI-powered life playback tool with memory reconstruction
+
+# Education
+Self-directed learning in Computer Science & AI (2022-Present), Google certifications in Digital Marketing, Data Analytics, and IT Support. French Baccalaureate in Sciences.
+
+Always be helpful, concise, and enthusiastic when discussing Ernst's work and capabilities.`
           },
           ...messages
         ],
