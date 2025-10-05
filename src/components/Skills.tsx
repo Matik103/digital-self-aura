@@ -1,0 +1,102 @@
+import { Code2, Database, Sparkles, Zap, Globe, Brain } from "lucide-react";
+import { Card } from "@/components/ui/card";
+
+const skills = [
+  {
+    icon: Code2,
+    title: "Frontend Development",
+    description: "React, TypeScript, Next.js, Tailwind CSS",
+    color: "text-primary",
+    glow: "shadow-glow-cyan",
+  },
+  {
+    icon: Database,
+    title: "Backend & Database",
+    description: "Node.js, PostgreSQL, Supabase, MongoDB",
+    color: "text-accent",
+    glow: "shadow-glow-pink",
+  },
+  {
+    icon: Brain,
+    title: "AI & Machine Learning",
+    description: "OpenAI, LangChain, Vector DBs, RAG",
+    color: "text-secondary",
+    glow: "shadow-glow-purple",
+  },
+  {
+    icon: Zap,
+    title: "Cloud Architecture",
+    description: "AWS, Serverless, Edge Functions, APIs",
+    color: "text-primary",
+    glow: "shadow-glow-cyan",
+  },
+  {
+    icon: Globe,
+    title: "Full-Stack Development",
+    description: "End-to-end application development",
+    color: "text-accent",
+    glow: "shadow-glow-pink",
+  },
+  {
+    icon: Sparkles,
+    title: "UI/UX Design",
+    description: "Figma, Responsive Design, Animations",
+    color: "text-secondary",
+    glow: "shadow-glow-purple",
+  },
+];
+
+const Skills = () => {
+  return (
+    <section id="skills" className="py-24 px-6 relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            Technical Arsenal
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            A comprehensive toolkit for building next-generation applications
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {skills.map((skill, index) => {
+            const Icon = skill.icon;
+            return (
+              <Card
+                key={skill.title}
+                className="group relative p-6 bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-105 animate-fade-in overflow-hidden"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {/* Glow effect on hover */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${skill.glow}`} />
+                
+                {/* Content */}
+                <div className="relative z-10">
+                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-${skill.color} to-transparent mb-4 flex items-center justify-center`}>
+                    <Icon className={`w-6 h-6 ${skill.color}`} />
+                  </div>
+                  
+                  <h3 className="font-display text-xl font-semibold mb-2 text-foreground">
+                    {skill.title}
+                  </h3>
+                  
+                  <p className="text-muted-foreground text-sm">
+                    {skill.description}
+                  </p>
+                </div>
+
+                {/* Corner accent */}
+                <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-${skill.color}/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Skills;
