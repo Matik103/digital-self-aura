@@ -42,18 +42,22 @@ const Hero = ({ onOpenChat }: HeroProps) => {
 
         {/* Main Heading */}
         <h1 className="font-display text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-fade-in">
-          YOUR NAME
+          Ernst Romain
         </h1>
         
-        <div className="relative mb-8">
+        <div className="relative mb-4">
           <h2 className="font-display text-2xl md:text-4xl font-medium text-foreground/90 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Full-Stack Developer & AI Architect
+            Full-Stack Developer & AI Engineer
           </h2>
           <div className="absolute -inset-2 bg-primary/5 blur-xl rounded-full" />
         </div>
 
+        <p className="text-md text-muted-foreground/80 mb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          Remote (Available Globally)
+        </p>
+
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          Welcome to my digital space. Ask my AI avatar anything about my skills, experience, and projects.
+          An enthusiastic full-stack developer and AI engineer building scalable applications, conversational AI systems, and mobile-first platforms. Ask my AI avatar anything about my skills, experience, and projects.
         </p>
 
         {/* CTA Buttons */}
