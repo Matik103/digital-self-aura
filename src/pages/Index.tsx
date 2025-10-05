@@ -4,21 +4,25 @@ import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
 import AIChat from "@/components/AIChat";
 import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import profilePic from "@/assets/profile-picture.jpg";
 
 const Index = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen">
-      {/* Fixed Chat Button */}
+      {/* Fixed Chat Button with Profile Picture */}
       {!isChatOpen && (
         <Button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0 overflow-hidden bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse border-2 border-primary/30"
           size="icon"
         >
-          <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+          <img 
+            src={profilePic} 
+            alt="Ernst Romain - Chat with AI Avatar" 
+            className="w-full h-full object-cover"
+          />
         </Button>
       )}
 
