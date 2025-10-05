@@ -21,7 +21,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Ernst Avatar. Ask me anything about skills, experience, or projects!",
+      content: "Hello! I'm Ernst AI. Ask me anything about skills, experience, or projects!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -130,10 +130,10 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-primary/30 animate-glow-pulse">
-              <img src={profilePic} alt="Ernst Avatar" className="w-full h-full object-cover" />
+              <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h3 className="font-display text-sm sm:text-base font-semibold text-foreground">Ernst Avatar</h3>
+              <h3 className="font-display text-sm sm:text-base font-semibold text-foreground">Ernst AI</h3>
               <p className="text-xs text-muted-foreground hidden sm:block">Powered by Lovable AI</p>
             </div>
           </div>
@@ -159,7 +159,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
               >
                 {message.role === "assistant" && (
                   <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
-                    <img src={profilePic} alt="Ernst Avatar" className="w-full h-full object-cover" />
+                    <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div
@@ -181,7 +181,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
             {isLoading && (
               <div className="flex gap-3 justify-start animate-fade-in">
                 <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
-                  <img src={profilePic} alt="Ernst Avatar" className="w-full h-full object-cover" />
+                  <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
                 </div>
                 <div className="bg-card border border-border/50 rounded-lg p-3">
                   <Loader2 className="w-4 h-4 animate-spin text-primary" />
