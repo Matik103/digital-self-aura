@@ -15,10 +15,10 @@ const Index = () => {
       {!isChatOpen && (
         <Button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse"
           size="icon"
         >
-          <MessageSquare className="w-6 h-6" />
+          <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
       )}
 
@@ -31,9 +31,9 @@ const Index = () => {
       <AIChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-border/50 bg-card/30 backdrop-blur-sm">
+      <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-border/50 bg-card/30 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             © 2025 AI Portfolio. Built with{" "}
             <span className="text-primary">Lovable</span> & powered by{" "}
             <span className="text-accent">AI</span>

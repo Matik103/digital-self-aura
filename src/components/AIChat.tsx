@@ -123,17 +123,17 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-      <Card className="w-full max-w-2xl h-[600px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+      <Card className="w-full max-w-2xl h-[90vh] sm:h-[600px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center animate-glow-pulse">
-              <Bot className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center animate-glow-pulse">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-display font-semibold text-foreground">AI Digital Avatar</h3>
-              <p className="text-xs text-muted-foreground">Powered by Lovable AI</p>
+              <h3 className="font-display text-sm sm:text-base font-semibold text-foreground">AI Digital Avatar</h3>
+              <p className="text-xs text-muted-foreground hidden sm:block">Powered by Lovable AI</p>
             </div>
           </div>
           <Button
@@ -147,7 +147,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 p-2 sm:p-4" ref={scrollRef}>
           <div className="space-y-4">
             {messages.map((message, index) => (
               <div
@@ -162,13 +162,13 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[85%] sm:max-w-[80%] rounded-lg p-2 sm:p-3 ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-card border border-border/50"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
                 </div>
                 {message.role === "user" && (
                   <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
@@ -191,7 +191,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
+        <form onSubmit={handleSubmit} className="p-2 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
           <div className="flex gap-2">
             <Input
               value={input}

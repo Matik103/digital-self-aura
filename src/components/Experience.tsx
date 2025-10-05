@@ -55,24 +55,24 @@ const experiences = [
 
 const Experience = () => {
   return (
-    <section className="py-24 px-6 relative">
+    <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
       
       <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="font-display text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Career Journey
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
             Building innovative solutions across diverse environments
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {experiences.map((exp, index) => (
             <Card
               key={index}
-              className="group p-6 bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-[1.02] animate-fade-in relative overflow-hidden"
+              className="group p-4 sm:p-6 bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] animate-fade-in relative overflow-hidden"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
               {/* Animated gradient background on hover */}
@@ -80,38 +80,38 @@ const Experience = () => {
               
               <div className="relative z-10">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
                   <div>
-                    <h3 className="font-display text-2xl font-semibold text-foreground mb-2">
+                    <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-foreground mb-1 sm:mb-2">
                       {exp.role}
                     </h3>
-                    <p className="text-lg text-primary font-medium">{exp.company}</p>
+                    <p className="text-base sm:text-lg text-primary font-medium">{exp.company}</p>
                   </div>
                   
-                  <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                  <div className="flex flex-col gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span>{exp.period}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span>{exp.location}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-muted-foreground mb-4">
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                   {exp.description}
                 </p>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {exp.tags.map((tag) => (
                     <Badge
                       key={tag}
                       variant="outline"
-                      className="border-primary/30 text-primary hover:bg-primary/10"
+                      className="border-primary/30 text-primary hover:bg-primary/10 text-xs sm:text-sm"
                     >
                       {tag}
                     </Badge>
@@ -120,7 +120,7 @@ const Experience = () => {
               </div>
 
               {/* Decorative corner */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute top-0 right-0 w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-accent/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Card>
           ))}
         </div>
