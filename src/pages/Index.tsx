@@ -4,7 +4,7 @@ import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
 import AIChat from "@/components/AIChat";
 import { Button } from "@/components/ui/button";
-import profilePic from "@/assets/profile-picture.jpg";
+import profilePic from "@/assets/profile-picture-edited.jpg";
 
 const Index = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
