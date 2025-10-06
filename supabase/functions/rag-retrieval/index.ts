@@ -59,13 +59,13 @@ serve(async (req) => {
 
     console.log('Searching for similar documents...');
 
-    // Search for similar documents
+    // Search for similar documents using n8n-compatible approach
     const { data: documents, error } = await externalSupabase.rpc(
       'match_documents',
       {
         query_embedding: embedding,
         match_count: matchCount,
-        match_threshold: 0.7,
+        filter: {},
       }
     );
 
