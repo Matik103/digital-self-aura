@@ -47,6 +47,18 @@ const knowledgeChunks = [
     content: "Additional Capabilities: Startup building, product prototyping, consulting, remote collaboration, applied AI systems integration. Strong in SaaS architecture, multi-agent systems, document processing pipelines, web scraping, secure authentication implementation.",
     metadata: { category: "skills", type: "specialties", priority: "high" }
   },
+  {
+    content: "Automation and Workflow Orchestration: Expert in n8n, Make.com (Integromat), and Zapier for building complex automation workflows. Custom automation design and deployment across SaaS platforms. Advanced workflow optimization with conditional logic, scheduling, error handling, and retry mechanisms. Building scalable automation pipelines that connect multiple services and APIs.",
+    metadata: { category: "skills", type: "automation", priority: "high" }
+  },
+  {
+    content: "CRM Integration and Automation: Extensive experience with Zoho, HubSpot, and Salesforce for CRM setup, automation, and pipeline optimization. Data syncing between CRM and external systems including marketing tools, analytics platforms, and support systems. Building lead capture and enrichment workflows via APIs and webhooks. Custom automation for sales processes, customer journey tracking, and data migration.",
+    metadata: { category: "skills", type: "crm", priority: "high" }
+  },
+  {
+    content: "API and Webhook Expertise: Deep knowledge of REST and GraphQL API integration. Webhook creation, consumption, and monitoring for real-time data synchronization. Designing middleware to connect legacy systems with modern applications. Expert in authentication handling including OAuth2, API Keys, and JWT tokens. Building reliable API integrations with proper error handling and rate limiting.",
+    metadata: { category: "skills", type: "api_integration", priority: "high" }
+  },
 
   // HappeningNow - Major Project (NEW)
   {

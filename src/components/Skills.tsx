@@ -25,8 +25,8 @@ const skills = [
   },
   {
     icon: Zap,
-    title: "Tools & DevOps",
-    description: "Git, Docker, CI/CD, RapidAPI, ExtractorAPI, REST/GraphQL APIs, Apify API",
+    title: "Automation & Integration",
+    description: "n8n, Make.com, Zapier, Zoho, HubSpot, Salesforce CRM automation, workflow orchestration, webhook design",
     color: "text-primary",
     glow: "shadow-glow-cyan",
   },
@@ -39,8 +39,8 @@ const skills = [
   },
   {
     icon: Sparkles,
-    title: "AI Specialties",
-    description: "AI chatbot development, real-time analytics, SaaS architecture, multi-agent systems, document processing, web scraping",
+    title: "API & Integration",
+    description: "REST/GraphQL APIs, OAuth2/JWT authentication, webhook monitoring, middleware design, Git, Docker, CI/CD",
     color: "text-secondary",
     glow: "shadow-glow-purple",
   },
