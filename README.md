@@ -1,24 +1,16 @@
-# Welcome to your Lovable project
+# Ernst Romain - AI Portfolio & Digital Avatar
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/2b716717-b281-4d4f-98bb-9035d8ccf475
+A modern, interactive portfolio website featuring an AI-powered chatbot that represents Ernst Romain.
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/2b716717-b281-4d4f-98bb-9035d8ccf475) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Clone this repo and make changes locally. The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
@@ -59,15 +51,17 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Backend & Database)
+- OpenAI API (AI Chatbot)
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/2b716717-b281-4d4f-98bb-9035d8ccf475) and click on Share -> Publish.
+You can deploy this project to any hosting service that supports Node.js applications:
 
-## Can I connect a custom domain to my Lovable project?
+- Vercel
+- Netlify
+- AWS
+- Google Cloud
+- Or any other hosting provider
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Make sure to set up the required environment variables for Supabase and OpenAI API.
