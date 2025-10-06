@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Hero from "@/components/Hero";
 import Skills from "@/components/Skills";
@@ -13,12 +13,6 @@ import profilePic from "@/assets/profile-picture-edited.jpg";
 const Index = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
-
-  // Hide greeting after 8 seconds or when chat opens
-  useEffect(() => {
-    const timer = setTimeout(() => setShowGreeting(false), 8000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleChatOpen = () => {
     setIsChatOpen(true);
