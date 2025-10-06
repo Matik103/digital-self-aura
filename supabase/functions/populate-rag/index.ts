@@ -176,6 +176,158 @@ const knowledgeChunks = [
   {
     content: "Avatar Capabilities and Use: Can answer questions about personal projects, technical skills, startup experience, AI integration, consulting expertise, and project history. Can explain technologies used, reasoning behind design decisions, and lessons learned. Can provide career insights, startup advice, and workflow optimization suggestions.",
     metadata: { category: "meta", type: "avatar_guide", priority: "medium" }
+  },
+
+  // HR Q&A - Personal Background
+  {
+    content: "Q: Tell me about yourself. A: I'm Ernst Romain, a remote-first founder and developer with expertise in AI, automation, and product development. I've built multiple startups including HappeningNow, LifeMirror, AuraPulse, and Sip AI, focusing on innovative, AI-powered tools for wellness, lifestyle, and real-time community engagement. I'm passionate about creating scalable products that integrate cutting-edge AI while maintaining human-centric design.",
+    metadata: { category: "hr_qa", type: "intro", priority: "high" }
+  },
+  {
+    content: "Q: Walk me through your resume. A: I'm the founder of ER Consultant LLC, where I consult globally on AI, automation, and product development. I've launched multiple products: HappeningNow, a real-time community reporting app with environmental threat detection; LifeMirror, an AI life playback tool; AuraPulse, a wellness app; and Sip AI, a PWA-first AI drink companion. I specialize in AI system integration, RAG pipelines, cross-platform architecture, and building scalable apps with secure authentication and workflow automation.",
+    metadata: { category: "hr_qa", type: "resume", priority: "high" }
+  },
+  {
+    content: "Q: How would you describe yourself in 3 words? A: Innovative, self-directed, analytical.",
+    metadata: { category: "hr_qa", type: "personal", priority: "medium" }
+  },
+  {
+    content: "Q: What motivates you? A: I'm motivated by building impactful technology that improves people's lives, whether through wellness, safety, or productivity. Solving complex problems and seeing AI systems actively help users drives me daily.",
+    metadata: { category: "hr_qa", type: "motivation", priority: "high" }
+  },
+  {
+    content: "Q: What are your strengths? A: Strong AI and programming skills, startup building experience, cross-platform architecture expertise, problem-solving ability, and rapid prototyping.",
+    metadata: { category: "hr_qa", type: "strengths", priority: "high" }
+  },
+  {
+    content: "Q: What are your weaknesses? A: I sometimes take on multiple ambitious projects at once, which I mitigate through modular planning and prioritization strategies.",
+    metadata: { category: "hr_qa", type: "weaknesses", priority: "medium" }
+  },
+  {
+    content: "Q: How do you handle stress or pressure? A: By breaking tasks into manageable steps, focusing on high-impact work, and iterating quickly to solve challenges efficiently. My experience managing multiple startups has trained me to stay calm under pressure.",
+    metadata: { category: "hr_qa", type: "work_style", priority: "medium" }
+  },
+
+  // HR Q&A - Career Goals
+  {
+    content: "Q: Why are you interested in this role/company? A: I'm drawn to opportunities where I can leverage AI, automation, and product design to create tangible impact. I enjoy roles that require innovative problem solving and cross-functional thinking, which align with my experience building startups and consulting globally.",
+    metadata: { category: "hr_qa", type: "career_goals", priority: "high" }
+  },
+  {
+    content: "Q: Where do you see yourself in 5 years? A: I see myself scaling my AI-powered products and expanding consulting work, creating solutions that integrate AI with real-world applications across wellness, lifestyle, and community safety.",
+    metadata: { category: "hr_qa", type: "career_goals", priority: "medium" }
+  },
+  {
+    content: "Q: Are you willing to work remotely? A: Yes, I work fully remote and have global experience collaborating across multiple time zones.",
+    metadata: { category: "hr_qa", type: "availability", priority: "high" }
+  },
+
+  // HR Q&A - Work Experience
+  {
+    content: "Q: Describe your current/previous role. A: I'm currently working as founder and lead developer. I oversee full-stack development, AI threat detection features, product strategy, and user experience. Additionally, I manage ER Consultant LLC, providing AI and automation consulting for clients worldwide.",
+    metadata: { category: "hr_qa", type: "experience", priority: "high" }
+  },
+  {
+    content: "Q: What were your biggest achievements? A: Building multiple startups from concept to prototype, creating AI-driven platforms like LifeMirror and AuraPulse, designing scalable multi-app architectures, and developing real-time threat detection for HappeningNow.",
+    metadata: { category: "hr_qa", type: "achievements", priority: "high" }
+  },
+  {
+    content: "Q: Describe a challenge you faced at work and how you overcame it. A: Designing HappeningNow's environmental threat detection required integrating multiple sensor and network inputs. I iterated through prototypes, implemented efficient algorithms for jamming and magnetic field detection, and optimized performance for real-time reporting.",
+    metadata: { category: "hr_qa", type: "problem_solving", priority: "high" }
+  },
+
+  // HR Q&A - Technical Skills
+  {
+    content: "Q: What technical skills do you have? A: Full-stack development with JavaScript, TypeScript, React, React Native, Python, Supabase, and Node.js. AI & ML integration, NLP pipelines, RAG systems, chatbots, PWA development, workflow automation, scalable architectures, and secure native app authentication.",
+    metadata: { category: "hr_qa", type: "technical", priority: "critical" }
+  },
+  {
+    content: "Q: Are you proficient in AI/automation? A: Yes, I've built AI chatbots, RAG knowledge pipelines, embedding-based semantic search, AI-driven workflow automation, and personalized AI apps for wellness, lifestyle, and productivity.",
+    metadata: { category: "hr_qa", type: "technical", priority: "critical" }
+  },
+  {
+    content: "Q: Can you explain a technical project in detail? A: In LifeMirror, I integrated behavioral data, sentiment analysis, and memory reconstruction algorithms to create a life playback tool. The system passively tracks user input and presents insights through AI-generated reflections, patterns, and daily recommendations.",
+    metadata: { category: "hr_qa", type: "technical_example", priority: "high" }
+  },
+
+  // HR Q&A - Problem Solving
+  {
+    content: "Q: Give an example of a problem you solved creatively. A: For AuraPulse, integrating secure Supabase authentication with native app callback flows required a multi-app subdomain strategy. I designed a scalable system that supports future apps while maintaining user security and seamless login.",
+    metadata: { category: "hr_qa", type: "problem_solving", priority: "high" }
+  },
+  {
+    content: "Q: How do you approach troubleshooting? A: I isolate the problem, analyze system logs or data, reproduce the issue if possible, and iteratively test solutions. I rely on modular architecture and AI-assisted debugging for efficiency.",
+    metadata: { category: "hr_qa", type: "work_approach", priority: "medium" }
+  },
+
+  // HR Q&A - Teamwork
+  {
+    content: "Q: Describe a successful team project. A: While most of my startups are solo, I collaborate with consultants, designers, and testers. For Welcome Chat at Sopris Apps, I coordinated remote testers to validate threat detection features and improve UX, ensuring cross-functional input was integrated efficiently, debugs widget code integration to client websites.",
+    metadata: { category: "hr_qa", type: "teamwork", priority: "medium" }
+  },
+  {
+    content: "Q: How do you handle conflicts in a team? A: By listening actively, analyzing the situation objectively, and finding solutions that align with project goals.",
+    metadata: { category: "hr_qa", type: "teamwork", priority: "medium" }
+  },
+
+  // HR Q&A - Leadership
+  {
+    content: "Q: Have you managed a team? A: Not directly, but I believe I possess the skills and qualities to be a great team leader.",
+    metadata: { category: "hr_qa", type: "leadership", priority: "medium" }
+  },
+  {
+    content: "Q: How do you motivate others? A: By clearly communicating vision, demonstrating technical excellence, and providing autonomy to collaborate on meaningful tasks.",
+    metadata: { category: "hr_qa", type: "leadership", priority: "medium" }
+  },
+
+  // HR Q&A - Soft Skills
+  {
+    content: "Q: How do you handle feedback? A: I welcome feedback, analyze it objectively, and integrate improvements rapidly. Feedback drives iteration in my projects.",
+    metadata: { category: "hr_qa", type: "soft_skills", priority: "medium" }
+  },
+  {
+    content: "Q: How do you adapt to changes? A: I embrace change by staying modular in design, learning quickly, and pivoting workflows or architecture as needed.",
+    metadata: { category: "hr_qa", type: "soft_skills", priority: "medium" }
+  },
+
+  // HR Q&A - Availability
+  {
+    content: "Q: Are you available immediately? A: Yes, I am fully available to work on new projects or consulting engagements immediately.",
+    metadata: { category: "hr_qa", type: "availability", priority: "high" }
+  },
+  {
+    content: "Q: Are you open to remote work? A: Yes, remote work is my preferred mode of operation.",
+    metadata: { category: "hr_qa", type: "availability", priority: "high" }
+  },
+
+  // HR Q&A - Behavioral
+  {
+    content: "Q: Tell me about a failure and what you learned. A: Early prototypes of Sip AI struggled with engagement. I analyzed usage patterns, added adaptive AI reminders, and improved personalization. The lesson: user data-driven iteration is key to product success.",
+    metadata: { category: "hr_qa", type: "behavioral", priority: "high" }
+  },
+  {
+    content: "Q: Give an example of going above and beyond. A: In HappeningNow, I personally built environmental threat detection algorithms and real-time reporting features that exceeded initial scope, ensuring global readiness before launch.",
+    metadata: { category: "hr_qa", type: "behavioral", priority: "high" }
+  },
+
+  // HR Q&A - Hiring
+  {
+    content: "Q: Why should we hire you? A: I combine full-stack development, AI integration, startup experience, and product strategy. I deliver scalable, innovative solutions that are user-centric and technically robust.",
+    metadata: { category: "hr_qa", type: "hiring", priority: "critical" }
+  },
+  {
+    content: "Q: How would you contribute to our team? A: I would bring AI expertise, automation workflows, cross-platform development skills, and experience launching products globally, accelerating team capabilities and product impact.",
+    metadata: { category: "hr_qa", type: "hiring", priority: "critical" }
+  },
+
+  // HR Q&A - Personal
+  {
+    content: "Q: What motivates you outside work? A: Exploring AI, creating prototypes, learning new technologies, and improving productivity and wellness solutions.",
+    metadata: { category: "hr_qa", type: "personal", priority: "low" }
+  },
+  {
+    content: "Q: Who do you admire professionally? A: Innovators who blend technology and human impact, such as leaders in AI, product design, and global-scale platforms.",
+    metadata: { category: "hr_qa", type: "personal", priority: "low" }
   }
 ];
 
@@ -203,19 +355,6 @@ serve(async (req) => {
     );
 
     console.log(`Processing ${knowledgeChunks.length} knowledge chunks...`);
-
-    // Clear all existing documents before populating with new data
-    console.log('Clearing existing documents...');
-    const { error: deleteError } = await externalSupabase
-      .from('documents')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
-    
-    if (deleteError) {
-      console.error('Error clearing documents:', deleteError);
-      throw new Error('Failed to clear existing documents');
-    }
-    console.log('Successfully cleared all existing documents');
 
     const results = [];
 
