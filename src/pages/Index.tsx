@@ -33,10 +33,10 @@ const Index = () => {
       <Skills />
       <Experience />
       
-      {/* RAG Population Tool */}
-      <section className="py-12 px-4 sm:px-6 bg-background/50">
+      {/* RAG Population Tool - Hidden but kept for future use */}
+      {/* <section className="py-12 px-4 sm:px-6 bg-background/50">
         <PopulateRAG />
-      </section>
+      </section> */}
 
       {/* AI Chat Modal */}
       <AIChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
