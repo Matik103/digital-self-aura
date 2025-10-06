@@ -14,8 +14,12 @@ const knowledgeChunks = [
     metadata: { category: "profile", type: "overview", priority: "high" }
   },
   {
-    content: "Contact Information: Email is ernst@happeningnow.io and intramaxx1@gmail.com, LinkedIn profile at linkedin.com/in/intramaxx1, GitHub at github.com/matik103, Phone number is +1863 312-9786. Company: ER Consultant LLC registered in Delaware, USA, operates internationally. Available for remote work globally.",
+    content: "Contact Information: Email is ernst@happeningnow.io, intramaxx1@gmail.com, and intramaxxe@gmail.com, LinkedIn profile at linkedin.com/in/intramaxx1, GitHub at github.com/matik103, Phone number is +1863 312-9786. Company: ER Consultant LLC registered in Delaware, USA, operates internationally. Available for remote work globally.",
     metadata: { category: "contact", type: "details", priority: "high" }
+  },
+  {
+    content: "Personal Information: Name is Ernst Romain. Work style is fully remote with global collaboration across multiple time zones. Available for remote work internationally.",
+    metadata: { category: "personal", type: "basic_info", priority: "high" }
   },
 
   // Technical Skills - Enhanced
