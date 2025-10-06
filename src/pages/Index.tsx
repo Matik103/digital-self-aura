@@ -44,9 +44,7 @@ const Index = () => {
       <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-border/50 bg-card/30 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            © 2025 AI Portfolio. Built with{" "}
-            <span className="text-primary">Lovable</span> & powered by{" "}
-            <span className="text-accent">AI</span>
+            © 2025 Ernst Romain. All rights reserved.
           </p>
         </div>
       </footer>
