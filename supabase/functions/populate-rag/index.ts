@@ -204,6 +204,19 @@ serve(async (req) => {
 
     console.log(`Processing ${knowledgeChunks.length} knowledge chunks...`);
 
+    // Clear all existing documents before populating with new data
+    console.log('Clearing existing documents...');
+    const { error: deleteError } = await externalSupabase
+      .from('documents')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+    
+    if (deleteError) {
+      console.error('Error clearing documents:', deleteError);
+      throw new Error('Failed to clear existing documents');
+    }
+    console.log('Successfully cleared all existing documents');
+
     const results = [];
 
     for (const chunk of knowledgeChunks) {
