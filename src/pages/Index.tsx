@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
 import AIChat from "@/components/AIChat";
+import PopulateRAG from "@/components/PopulateRAG";
 import { Button } from "@/components/ui/button";
 import profilePic from "@/assets/profile-picture-edited.jpg";
 
@@ -30,6 +31,11 @@ const Index = () => {
       <Hero onOpenChat={() => setIsChatOpen(true)} />
       <Skills />
       <Experience />
+      
+      {/* RAG Population Tool */}
+      <section className="py-12 px-4 sm:px-6 bg-background/50">
+        <PopulateRAG />
+      </section>
 
       {/* AI Chat Modal */}
       <AIChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
