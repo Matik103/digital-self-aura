@@ -90,7 +90,7 @@ const Policy = () => {
               prohibited activities, please report it immediately:
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Email: <a href="mailto:ernst@happeningnow.io" className="text-primary hover:underline">ernst@happeningnow.io</a></li>
+              <li>Email: <a href="mailto:ernst@erconsulting.tech" className="text-primary hover:underline">ernst@erconsulting.tech</a></li>
               <li>Email: <a href="mailto:intramaxx1@gmail.com" className="text-primary hover:underline">intramaxx1@gmail.com</a></li>
             </ul>
           </section>
@@ -139,7 +139,7 @@ const Policy = () => {
               For questions about this policy or to request permission for specific use cases:
             </p>
             <ul className="space-y-1">
-              <li>Email: <a href="mailto:ernst@happeningnow.io" className="text-primary hover:underline">ernst@happeningnow.io</a></li>
+              <li>Email: <a href="mailto:ernst@erconsulting.tech" className="text-primary hover:underline">ernst@erconsulting.tech</a></li>
               <li>Email: <a href="mailto:intramaxx1@gmail.com" className="text-primary hover:underline">intramaxx1@gmail.com</a></li>
               <li>LinkedIn: <a href="https://linkedin.com/in/intramaxx1" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">linkedin.com/in/intramaxx1</a></li>
               <li>GitHub: <a href="https://github.com/matik103" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">github.com/matik103</a></li>
