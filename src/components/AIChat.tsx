@@ -134,7 +134,6 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
             </div>
             <div>
               <h3 className="font-display text-sm sm:text-base font-semibold text-foreground">Ernst AI</h3>
-              <p className="text-xs text-muted-foreground hidden sm:block">Powered by Lovable AI</p>
             </div>
           </div>
           <Button
