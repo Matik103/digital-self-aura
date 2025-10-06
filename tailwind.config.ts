@@ -91,6 +91,11 @@ export default {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" }
         },
+        "wave": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(20deg)" },
+          "75%": { transform: "rotate(-15deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -99,6 +104,7 @@ export default {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
         "scan": "scan 4s linear infinite",
+        "wave": "wave 0.5s ease-in-out",
       },
     },
   },
