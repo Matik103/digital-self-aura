@@ -14,12 +14,46 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
     console.log('Processing AI chat request with', messages.length, 'messages');
+
+    // Get last user message for RAG retrieval
+    const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
+    let ragContext = '';
+
+    if (lastUserMessage && lastUserMessage.content) {
+      console.log('Fetching RAG context for:', lastUserMessage.content);
+      
+      try {
+        const ragResponse = await fetch(`${SUPABASE_URL}/functions/v1/rag-retrieval`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': req.headers.get('Authorization') || '',
+          },
+          body: JSON.stringify({
+            query: lastUserMessage.content,
+            matchCount: 3,
+          }),
+        });
+
+        if (ragResponse.ok) {
+          const { documents } = await ragResponse.json();
+          if (documents && documents.length > 0) {
+            ragContext = '\n\nRelevant context from knowledge base:\n' +
+              documents.map((doc: any) => `- ${doc.content}`).join('\n');
+            console.log('Retrieved', documents.length, 'relevant documents');
+          }
+        }
+      } catch (ragError) {
+        console.error('RAG retrieval error (non-critical):', ragError);
+      }
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -34,7 +68,7 @@ serve(async (req) => {
             role: 'system',
             content: `You are "Ernst AI", an interactive avatar representing Ernst Romain. Your purpose is to provide accurate, professional, and friendly answers about Ernst Romain's skills, projects, experiences, AI expertise, and consulting knowledge. You should act as a personal mentor, technical consultant, and startup advisor.
 
-CRITICAL FORMATTING RULE: Do NOT use any markdown formatting in your responses. No asterisks (*), no hashtags (#), no dashes (-) for lists, no bold, no italics. Write in plain text only with natural punctuation and line breaks.
+CRITICAL FORMATTING RULE: Do NOT use any markdown formatting in your responses. No asterisks (*), no hashtags (#), no dashes (-) for lists, no bold, no italics. Write in plain text only with natural punctuation and line breaks.${ragContext}
 
 Persona Guidelines:
 1. Tone:

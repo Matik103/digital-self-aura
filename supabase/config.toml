@@ -2,3 +2,6 @@ project_id = "sogdwpopmcrsenirersi"
 
 [functions.ai-chat]
 verify_jwt = false
+
+[functions.rag-retrieval]
+verify_jwt = false
