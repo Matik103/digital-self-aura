@@ -1,0 +1,42 @@
+# Scraper Protection via .htaccess
+# Block known scrapers and bots
+
+RewriteEngine On
+
+# Block bad user agents
+RewriteCond %{HTTP_USER_AGENT} (scrapy|curl|wget|python-requests|mechanize|beautifulsoup|selenium|puppeteer|playwright|headless|phantom) [NC]
+RewriteRule .* - [F,L]
+
+# Block requests without referrer (common in scrapers)
+RewriteCond %{HTTP_REFERER} ^$
+RewriteCond %{REQUEST_URI} !^/policy$
+RewriteCond %{REQUEST_URI} !^/robots\.txt$
+RewriteCond %{REQUEST_URI} !^/favicon\.ico$
+RewriteRule .* - [F,L]
+
+# Rate limiting - block if more than 30 requests in 60 seconds
+RewriteCond %{REQUEST_URI} !^/policy$
+RewriteCond %{REQUEST_URI} !^/robots\.txt$
+RewriteCond %{ENV:REDIRECT_STATUS} !=403
+RewriteRule .* - [E=SCRAPER:1]
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    
+    # Anti-scraping headers
+    Header set X-Robots-Tag "noindex, nofollow, noarchive" "expr=%{REQUEST_URI} =~ m#^/api/#"
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "\.(env|json|lock|sql|log)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
