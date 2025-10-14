@@ -80,8 +80,38 @@ serve(async (req) => {
 
     console.log('Lead saved successfully:', data);
 
-    // Send notification email (optional - you can implement this later)
-    // await sendNotificationEmail(leadRecord);
+    // Send notification email
+    try {
+      const notificationResponse = await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({
+          leadId: data.id,
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone,
+          company: leadData.company,
+          jobTitle: leadData.job_title,
+          interestArea: leadData.interest_area,
+          message: leadData.message,
+          meetingRequested: leadData.meeting_requested,
+          conversationSummary: leadData.conversation_summary,
+          calendlyUrl: 'https://calendly.com/ernstai/45min'
+        }),
+      });
+
+      if (notificationResponse.ok) {
+        console.log('Email notification sent successfully');
+      } else {
+        console.error('Email notification failed:', await notificationResponse.text());
+      }
+    } catch (emailError) {
+      console.error('Error sending email notification:', emailError);
+      // Don't fail the lead save if email fails
+    }
 
     return new Response(
       JSON.stringify({ 

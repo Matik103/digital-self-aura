@@ -125,14 +125,14 @@ const ContactForm = ({ onClose, onLeadCaptured, conversationSummary, interestAre
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <User className="w-5 h-5 text-primary" />
+              <Calendar className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Let's Connect!</h2>
+              <h2 className="text-xl font-semibold">Let's Schedule a Meeting!</h2>
               <p className="text-sm text-muted-foreground">
-                I'd love to learn more about your project and how I can help.
+                I'd love to discuss your project and explore how we can work together.
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ const ContactForm = ({ onClose, onLeadCaptured, conversationSummary, interestAre
                   onCheckedChange={(checked) => handleInputChange("meetingRequested", checked as boolean)}
                 />
                 <Label htmlFor="meetingRequested" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  I'd like to schedule a meeting to discuss this further
+                  Yes, I'd like to schedule a meeting (recommended)
                 </Label>
               </div>
 
@@ -300,7 +300,7 @@ const ContactForm = ({ onClose, onLeadCaptured, conversationSummary, interestAre
                 disabled={isSubmitting || !formData.name || !formData.email || !formData.interestArea}
                 className="flex-1 bg-primary hover:bg-primary/90"
               >
-                {isSubmitting ? "Saving..." : "Send Information"}
+                {isSubmitting ? "Saving..." : "Schedule Meeting"}
               </Button>
             </div>
           </form>

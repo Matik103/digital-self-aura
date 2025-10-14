@@ -34,6 +34,8 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [conversationSummary, setConversationSummary] = useState("");
   const [interestArea, setInterestArea] = useState("");
   const [lastUserMessage, setLastUserMessage] = useState("");
+  const [showEndConversationPrompt, setShowEndConversationPrompt] = useState(false);
+  const [conversationCount, setConversationCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -75,10 +77,21 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
            messages.length >= 3; // Only after a few exchanges
   };
 
+  const shouldShowEndConversationPrompt = (): boolean => {
+    // Show after 5+ exchanges and no contact form shown yet
+    return conversationCount >= 5 && !showContactForm && !showEndConversationPrompt;
+  };
+
+  const handleEndConversation = () => {
+    setShowEndConversationPrompt(true);
+    setShowContactForm(true);
+  };
+
   const streamChat = async (userMessage: string) => {
     const newMessages = [...messages, { role: "user" as const, content: userMessage }];
     setMessages(newMessages);
     setLastUserMessage(userMessage);
+    setConversationCount(prev => prev + 1);
     setIsLoading(true);
 
     // Update conversation summary for lead generation
@@ -250,6 +263,47 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                         setShowContactForm(true);
                       }}
                     />
+                  )}
+
+                  {/* End Conversation Prompt */}
+                  {message.role === "assistant" && shouldShowEndConversationPrompt() && (
+                    <div className="mt-3 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
+                            Let's Connect!
+                          </h4>
+                          <p className="text-sm text-green-800 dark:text-green-200 mb-3">
+                            I'd love to continue this conversation and explore how we can work together. 
+                            Would you like to schedule a meeting to discuss your project or opportunities?
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              onClick={handleEndConversation}
+                              className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                            >
+                              <Calendar className="w-3 h-3 mr-1" />
+                              Yes, Let's Meet!
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowEndConversationPrompt(false)}
+                              className="text-xs border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/20"
+                            >
+                              Maybe Later
+                            </Button>
+                          </div>
+                          <div className="mt-2 text-xs text-green-700 dark:text-green-300">
+                            Or book directly: <a href="https://calendly.com/ernstai/45min" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">https://calendly.com/ernstai/45min</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   {/* Contact Prompt for Assistant Messages */}
