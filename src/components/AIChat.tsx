@@ -260,12 +260,6 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         />
       )}
 
-      {/* Debug indicator */}
-      {showSimpleContactForm && (
-        <div className="fixed top-4 right-4 z-[70] bg-red-500 text-white p-2 rounded">
-          SimpleContactForm should be visible
-        </div>
-      )}
 
       {/* Main Chat Interface */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
