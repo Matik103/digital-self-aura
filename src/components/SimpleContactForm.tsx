@@ -38,25 +38,33 @@ const SimpleContactForm = ({ onClose, onContactSaved, conversationSummary }: Sim
 
     try {
       // Save contact to database
+      const requestData = {
+        name: formData.name,
+        email: formData.email,
+        phone: null, // SimpleContactForm doesn't collect phone
+        company: formData.company || null,
+        jobTitle: null, // SimpleContactForm doesn't collect job title
+        message: formData.description || null,
+        conversationSummary: formData.conversationSummary,
+        interestArea: "general",
+        meetingRequested: false,
+      };
+      
+      console.log("Sending contact data:", requestData);
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-lead`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          company: formData.company || null,
-          message: formData.description || null,
-          conversationSummary: formData.conversationSummary,
-          interestArea: "general",
-          meetingRequested: false,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save contact");
+        const errorData = await response.json();
+        console.error("Save contact error:", errorData);
+        throw new Error(errorData.error || "Failed to save contact");
       }
 
       onContactSaved(formData);
