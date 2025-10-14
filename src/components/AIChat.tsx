@@ -79,8 +79,19 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     ];
     
     const lowerMessage = message.toLowerCase();
-    return contactKeywords.some(keyword => lowerMessage.includes(keyword)) && 
-           messages.length >= 3; // Only after a few exchanges
+    const hasKeywords = contactKeywords.some(keyword => lowerMessage.includes(keyword));
+    const hasEnoughMessages = messages.length >= 3;
+    const shouldShow = hasKeywords && hasEnoughMessages;
+    
+    console.log("shouldShowContactPrompt check:", {
+      message: lowerMessage,
+      hasKeywords,
+      hasEnoughMessages,
+      messagesLength: messages.length,
+      shouldShow
+    });
+    
+    return shouldShow;
   };
 
   const shouldShowEndConversationPrompt = (): boolean => {
@@ -193,9 +204,11 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
       // After the AI response is complete, check if we should show contact prompt
       if (shouldShowContactPrompt(userMessage)) {
+        console.log("Setting showContactPrompt to true");
         setMessages((prev) => {
           const newMessages = [...prev];
           newMessages[newMessages.length - 1].showContactPrompt = true;
+          console.log("Updated message with showContactPrompt:", newMessages[newMessages.length - 1]);
           return newMessages;
         });
       }
