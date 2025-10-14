@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          name: string | null
+          email: string
+          phone: string | null
+          company: string | null
+          job_title: string | null
+          source: string
+          interest_area: string | null
+          message: string | null
+          conversation_summary: string | null
+          status: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
+          priority: 'low' | 'medium' | 'high' | 'urgent'
+          meeting_requested: boolean
+          meeting_scheduled_at: string | null
+          meeting_notes: string | null
+          ip_address: string | null
+          user_agent: string | null
+          referrer_url: string | null
+          session_id: string | null
+          last_contacted_at: string | null
+          converted_at: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          name?: string | null
+          email: string
+          phone?: string | null
+          company?: string | null
+          job_title?: string | null
+          source?: string
+          interest_area?: string | null
+          message?: string | null
+          conversation_summary?: string | null
+          status?: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          meeting_requested?: boolean
+          meeting_scheduled_at?: string | null
+          meeting_notes?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          session_id?: string | null
+          last_contacted_at?: string | null
+          converted_at?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          name?: string | null
+          email?: string
+          phone?: string | null
+          company?: string | null
+          job_title?: string | null
+          source?: string
+          interest_area?: string | null
+          message?: string | null
+          conversation_summary?: string | null
+          status?: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          meeting_requested?: boolean
+          meeting_scheduled_at?: string | null
+          meeting_notes?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          session_id?: string | null
+          last_contacted_at?: string | null
+          converted_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
