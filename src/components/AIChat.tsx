@@ -247,6 +247,13 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         />
       )}
 
+      {/* Debug indicator */}
+      {showSimpleContactForm && (
+        <div className="fixed top-4 right-4 z-[70] bg-red-500 text-white p-2 rounded">
+          SimpleContactForm should be visible
+        </div>
+      )}
+
       {/* Main Chat Interface */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
       <Card className="w-full max-w-2xl h-[95vh] max-h-[800px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
@@ -353,7 +360,9 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       <div className="flex flex-col sm:flex-row gap-2 mb-2">
                         <Button
                           size="sm"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             console.log("Share Contact Info button clicked");
                             setShowSimpleContactForm(true);
                           }}

@@ -87,7 +87,7 @@ const SimpleContactForm = ({ onClose, onContactSaved, conversationSummary }: Sim
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
       <Card className="w-full max-w-md bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
