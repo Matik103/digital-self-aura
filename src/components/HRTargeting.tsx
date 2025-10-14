@@ -101,22 +101,22 @@ const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTarg
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <Button
               size="sm"
               onClick={onContactRequest}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <MessageSquare className="w-3 h-3 mr-1" />
+              <MessageSquare className="w-4 h-4 mr-2" />
               Share Contact Info
             </Button>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => window.open("https://calendly.com/ernstai/45min", "_blank", "noopener,noreferrer")}
+              onClick={onMeetingRequest}
               className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/20"
             >
-              <Calendar className="w-3 h-3 mr-1" />
+              <Calendar className="w-4 h-4 mr-2" />
               Schedule Interview
             </Button>
           </div>

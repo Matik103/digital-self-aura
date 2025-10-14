@@ -39,12 +39,11 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [conversationCount, setConversationCount] = useState(0);
   const [showSimpleContactForm, setShowSimpleContactForm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleLeadCaptured = (leadData: LeadData) => {
@@ -108,7 +107,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   };
 
   const handleScheduleMeeting = () => {
-    // Open Calendly in new tab
+    // Open Calendly with the booking widget
     window.open("https://calendly.com/ernstai/45min", "_blank", "noopener,noreferrer");
   };
 
@@ -242,7 +241,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
       {/* Main Chat Interface */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-      <Card className="w-full max-w-2xl h-[90vh] sm:h-[600px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
+      <Card className="w-full max-w-2xl h-[95vh] max-h-[800px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
         {/* Header */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -264,7 +263,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-2 sm:p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 p-3 sm:p-4">
           <div className="space-y-4">
             {messages.map((message, index) => (
               <div
@@ -278,24 +277,21 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                     <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[85%] sm:max-w-[80%] rounded-lg p-2 sm:p-3 ${
+                 <div
+                  className={`max-w-[90%] sm:max-w-[85%] rounded-lg p-3 ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-card border border-border/50"
                   }`}
                 >
-                  <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                   
                   {/* HR Targeting for Assistant Messages */}
                   {message.role === "assistant" && lastUserMessage && (
                     <HRTargeting
                       userMessage={lastUserMessage}
-                      onContactRequest={() => setShowContactForm(true)}
-                      onMeetingRequest={() => {
-                        setInterestArea("hr_interview");
-                        setShowContactForm(true);
-                      }}
+                      onContactRequest={() => setShowSimpleContactForm(true)}
+                      onMeetingRequest={handleScheduleMeeting}
                     />
                   )}
 
@@ -342,26 +338,25 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
                   {/* Contact Prompt for Assistant Messages */}
                   {message.role === "assistant" && message.showContactPrompt && (
-                    <div className="mt-3 p-3 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
-                      <p className="text-xs font-medium text-foreground mb-2">
+                    <div className="mt-3 p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
+                      <p className="text-sm font-medium text-foreground mb-3">
                         Interested in working together?
                       </p>
-                      <div className="flex flex-wrap gap-2 mb-2">
+                      <div className="flex flex-col sm:flex-row gap-2 mb-2">
                         <Button
                           size="sm"
                           onClick={() => setShowSimpleContactForm(true)}
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
-                          <MessageSquare className="w-3 h-3 mr-1" />
+                          <MessageSquare className="w-4 h-4 mr-2" />
                           Share Contact Info
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={handleScheduleMeeting}
-                          className="text-xs"
                         >
-                          <Calendar className="w-3 h-3 mr-1" />
+                          <Calendar className="w-4 h-4 mr-2" />
                           Schedule Meeting
                         </Button>
                       </div>
@@ -388,25 +383,26 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-2 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
+        <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
           <div className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything..."
               disabled={isLoading}
-              className="flex-1 bg-input border-border/50 focus:border-primary"
+              className="flex-1 bg-input border-border/50 focus:border-primary text-sm sm:text-base"
             />
             <Button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan px-3 sm:px-4"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
         </form>
