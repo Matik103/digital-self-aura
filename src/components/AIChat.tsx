@@ -6,6 +6,7 @@ import { X, Send, User, Loader2, Calendar, MessageSquare, Phone } from "lucide-r
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import ContactForm, { LeadData } from "./ContactForm";
+import SimpleContactForm, { SimpleContactData } from "./SimpleContactForm";
 import HRTargeting from "./HRTargeting";
 import profilePic from "@/assets/profile-picture-edited.jpg";
 
@@ -36,6 +37,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [lastUserMessage, setLastUserMessage] = useState("");
   const [showEndConversationPrompt, setShowEndConversationPrompt] = useState(false);
   const [conversationCount, setConversationCount] = useState(0);
+  const [showSimpleContactForm, setShowSimpleContactForm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -85,6 +87,29 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const handleEndConversation = () => {
     setShowEndConversationPrompt(true);
     setShowContactForm(true);
+  };
+
+  const handleSimpleContactSaved = (contactData: SimpleContactData) => {
+    setShowSimpleContactForm(false);
+    setConversationSummary("");
+    
+    // Add a thank you message
+    const thankYouMessage: Message = {
+      role: "assistant",
+      content: `Thank you ${contactData.name}! I've received your contact information and I'll be in touch soon. Feel free to ask me any other questions!`,
+    };
+    
+    setMessages(prev => [...prev, thankYouMessage]);
+    
+    toast({
+      title: "Contact Saved!",
+      description: "Thank you for sharing your information. I'll be in touch soon!",
+    });
+  };
+
+  const handleScheduleMeeting = () => {
+    // Open Calendly in new tab
+    window.open("https://calendly.com/ernstai/45min", "_blank", "noopener,noreferrer");
   };
 
   const streamChat = async (userMessage: string) => {
@@ -206,6 +231,15 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         />
       )}
 
+      {/* Simple Contact Form Modal */}
+      {showSimpleContactForm && (
+        <SimpleContactForm
+          onClose={() => setShowSimpleContactForm(false)}
+          onContactSaved={handleSimpleContactSaved}
+          conversationSummary={conversationSummary}
+        />
+      )}
+
       {/* Main Chat Interface */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
       <Card className="w-full max-w-2xl h-[90vh] sm:h-[600px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
@@ -315,7 +349,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       <div className="flex flex-wrap gap-2 mb-2">
                         <Button
                           size="sm"
-                          onClick={() => setShowContactForm(true)}
+                          onClick={() => setShowSimpleContactForm(true)}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
                         >
                           <MessageSquare className="w-3 h-3 mr-1" />
@@ -324,10 +358,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setInterestArea("general");
-                            setShowContactForm(true);
-                          }}
+                          onClick={handleScheduleMeeting}
                           className="text-xs"
                         >
                           <Calendar className="w-3 h-3 mr-1" />

@@ -108,12 +108,12 @@ const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTarg
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <MessageSquare className="w-3 h-3 mr-1" />
-              Get Full Resume
+              Share Contact Info
             </Button>
             <Button
               size="sm"
               variant="outline"
-              onClick={onMeetingRequest}
+              onClick={() => window.open("https://calendly.com/ernstai/45min", "_blank", "noopener,noreferrer")}
               className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/20"
             >
               <Calendar className="w-3 h-3 mr-1" />
