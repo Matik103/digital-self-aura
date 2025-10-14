@@ -94,11 +94,11 @@ serve(async (req) => {
           email: leadData.email,
           phone: leadData.phone,
           company: leadData.company,
-          jobTitle: leadData.job_title,
-          interestArea: leadData.interest_area,
+          jobTitle: leadData.jobTitle,
+          interestArea: interestArea,
           message: leadData.message,
-          meetingRequested: leadData.meeting_requested,
-          conversationSummary: leadData.conversation_summary,
+          meetingRequested: leadData.meetingRequested,
+          conversationSummary: leadData.conversationSummary,
           calendlyUrl: 'https://calendly.com/ernstai/45min'
         }),
       });
