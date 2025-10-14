@@ -101,7 +101,7 @@ const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTarg
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             <Button
               size="sm"
               onClick={onContactRequest}
@@ -119,6 +119,9 @@ const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTarg
               <Calendar className="w-3 h-3 mr-1" />
               Schedule Interview
             </Button>
+          </div>
+          <div className="text-xs text-blue-700 dark:text-blue-300">
+            Or book directly: <a href="https://calendly.com/ernstai/45min" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">https://calendly.com/ernstai/45min</a>
           </div>
         </div>
       </div>

@@ -258,7 +258,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       <p className="text-xs font-medium text-foreground mb-2">
                         Interested in working together?
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 mb-2">
                         <Button
                           size="sm"
                           onClick={() => setShowContactForm(true)}
@@ -279,6 +279,9 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                           <Calendar className="w-3 h-3 mr-1" />
                           Schedule Meeting
                         </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Or book directly: <a href="https://calendly.com/ernstai/45min" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://calendly.com/ernstai/45min</a>
                       </div>
                     </div>
                   )}
