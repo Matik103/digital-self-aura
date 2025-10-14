@@ -38,6 +38,11 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [showEndConversationPrompt, setShowEndConversationPrompt] = useState(false);
   const [conversationCount, setConversationCount] = useState(0);
   const [showSimpleContactForm, setShowSimpleContactForm] = useState(false);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log("showSimpleContactForm state changed:", showSimpleContactForm);
+  }, [showSimpleContactForm]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -233,7 +238,10 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
       {/* Simple Contact Form Modal */}
       {showSimpleContactForm && (
         <SimpleContactForm
-          onClose={() => setShowSimpleContactForm(false)}
+          onClose={() => {
+            console.log("Closing simple contact form");
+            setShowSimpleContactForm(false);
+          }}
           onContactSaved={handleSimpleContactSaved}
           conversationSummary={conversationSummary}
         />
@@ -345,7 +353,10 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       <div className="flex flex-col sm:flex-row gap-2 mb-2">
                         <Button
                           size="sm"
-                          onClick={() => setShowSimpleContactForm(true)}
+                          onClick={() => {
+                            console.log("Share Contact Info button clicked");
+                            setShowSimpleContactForm(true);
+                          }}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <MessageSquare className="w-4 h-4 mr-2" />
