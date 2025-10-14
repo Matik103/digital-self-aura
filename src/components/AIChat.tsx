@@ -367,9 +367,22 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                             setShowSimpleContactForm(true);
                           }}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          type="button"
                         >
                           <MessageSquare className="w-4 h-4 mr-2" />
                           Share Contact Info
+                        </Button>
+                        {/* Debug test button */}
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            console.log("Test button clicked");
+                            setShowSimpleContactForm(!showSimpleContactForm);
+                          }}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                          type="button"
+                        >
+                          Test Toggle
                         </Button>
                         <Button
                           size="sm"
