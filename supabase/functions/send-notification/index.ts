@@ -170,8 +170,8 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Ernst AI <noreply@ernstai.com>',
-        to: ['hookarte@gmail.com'],
+        from: 'Ernst AI <leads@erconsulting.tech>',
+        to: ['intramaxx1@gmail.com', 'ernst@erconsulting.tech'],
         subject: `🎯 New Lead: ${leadData.name || 'Unknown'} - ${leadData.company || 'No Company'} - ${leadData.meetingRequested ? 'Meeting Requested' : 'Contact Only'}`,
         html: emailHtml,
       }),
