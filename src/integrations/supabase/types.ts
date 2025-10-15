@@ -16,80 +16,81 @@ export type Database = {
     Tables: {
       leads: {
         Row: {
-          id: string
-          created_at: string
-          updated_at: string
-          name: string | null
-          email: string
-          phone: string | null
           company: string | null
-          job_title: string | null
-          source: string
-          interest_area: string | null
-          message: string | null
           conversation_summary: string | null
-          status: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
-          priority: 'low' | 'medium' | 'high' | 'urgent'
+          converted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          interest_area: string | null
+          ip_address: string | null
+          job_title: string | null
+          last_contacted_at: string | null
+          meeting_notes: string | null
           meeting_requested: boolean
           meeting_scheduled_at: string | null
-          meeting_notes: string | null
-          ip_address: string | null
-          user_agent: string | null
+          message: string | null
+          name: string
+          phone: string | null
+          priority: Database["public"]["Enums"]["lead_priority"]
           referrer_url: string | null
           session_id: string | null
-          last_contacted_at: string | null
-          converted_at: string | null
+          source: string
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+          user_agent: string | null
         }
         Insert: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          name?: string | null
-          email: string
-          phone?: string | null
           company?: string | null
-          job_title?: string | null
-          source?: string
-          interest_area?: string | null
-          message?: string | null
           conversation_summary?: string | null
-          status?: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          converted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          interest_area?: string | null
+          ip_address?: string | null
+          job_title?: string | null
+          last_contacted_at?: string | null
+          meeting_notes?: string | null
           meeting_requested?: boolean
           meeting_scheduled_at?: string | null
-          meeting_notes?: string | null
-          ip_address?: string | null
-          user_agent?: string | null
+          message?: string | null
+          name: string
+          phone?: string | null
+          priority?: Database["public"]["Enums"]["lead_priority"]
           referrer_url?: string | null
           session_id?: string | null
-          last_contacted_at?: string | null
-          converted_at?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          user_agent?: string | null
         }
         Update: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          name?: string | null
-          email?: string
-          phone?: string | null
           company?: string | null
-          job_title?: string | null
-          source?: string
-          interest_area?: string | null
-          message?: string | null
           conversation_summary?: string | null
-          status?: 'new' | 'contacted' | 'qualified' | 'meeting_scheduled' | 'converted' | 'closed'
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          converted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          interest_area?: string | null
+          ip_address?: string | null
+          job_title?: string | null
+          last_contacted_at?: string | null
+          meeting_notes?: string | null
           meeting_requested?: boolean
           meeting_scheduled_at?: string | null
-          meeting_notes?: string | null
-          ip_address?: string | null
-          user_agent?: string | null
+          message?: string | null
+          name?: string
+          phone?: string | null
+          priority?: Database["public"]["Enums"]["lead_priority"]
           referrer_url?: string | null
           session_id?: string | null
-          last_contacted_at?: string | null
-          converted_at?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          user_agent?: string | null
         }
+        Relationships: []
       }
     }
     Views: {
@@ -99,7 +100,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      lead_priority: "low" | "medium" | "high" | "urgent"
+      lead_status:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "meeting_scheduled"
+        | "converted"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -226,6 +234,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      lead_priority: ["low", "medium", "high", "urgent"],
+      lead_status: [
+        "new",
+        "contacted",
+        "qualified",
+        "meeting_scheduled",
+        "converted",
+        "closed",
+      ],
+    },
   },
 } as const
