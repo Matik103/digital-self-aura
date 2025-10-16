@@ -305,10 +305,18 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       ? "bg-primary text-primary-foreground"
                       : "bg-card border border-border/50"
                   }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                  
-                  {/* HR Targeting for Assistant Messages */}
+                 >
+                   <p className="text-sm whitespace-pre-wrap break-words">
+                     {message.role === "assistant" 
+                       ? message.content
+                           .replace(/\*\*/g, '') // Remove bold markers
+                           .replace(/\*/g, '')   // Remove italic markers
+                           .replace(/^#+\s/gm, '') // Remove headers
+                       : message.content
+                     }
+                   </p>
+                   
+                   {/* HR Targeting for Assistant Messages */}
                   {message.role === "assistant" && lastUserMessage && (
                     <HRTargeting
                       userMessage={lastUserMessage}
