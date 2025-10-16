@@ -163,27 +163,34 @@ serve(async (req) => {
       );
     }
 
+    const emailPayload = {
+      from: 'Ernst AI Leads <onboarding@resend.dev>',
+      to: ['intramaxx1@gmail.com', 'ernst@erconsulting.tech'],
+      reply_to: 'ernst@erconsulting.tech',
+      subject: `🎯 New Lead: ${leadData.name || 'Unknown'} - ${leadData.company || 'No Company'} - ${leadData.meetingRequested ? 'Meeting Requested' : 'Contact Only'}`,
+      html: emailHtml,
+    };
+
+    console.log('Sending email with payload:', JSON.stringify(emailPayload));
+
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'Ernst AI <leads@erconsulting.tech>',
-        to: ['intramaxx1@gmail.com', 'ernst@erconsulting.tech'],
-        subject: `🎯 New Lead: ${leadData.name || 'Unknown'} - ${leadData.company || 'No Company'} - ${leadData.meetingRequested ? 'Meeting Requested' : 'Contact Only'}`,
-        html: emailHtml,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
+    const responseData = await emailResponse.json();
+    console.log('Resend API response:', JSON.stringify(responseData));
+
     if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      console.error('Email sending failed:', errorText);
-      throw new Error(`Email sending failed: ${errorText}`);
+      console.error('Email sending failed with status:', emailResponse.status);
+      throw new Error(`Email sending failed: ${JSON.stringify(responseData)}`);
     }
 
-    console.log('Email notification sent successfully');
+    console.log('Email notification sent successfully to:', emailPayload.to.join(', '));
 
     return new Response(
       JSON.stringify({ 
