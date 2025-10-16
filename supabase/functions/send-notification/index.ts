@@ -164,7 +164,7 @@ serve(async (req) => {
     }
 
     const emailPayload = {
-      from: 'Ernst AI Leads <onboarding@resend.dev>',
+      from: 'Ernst AI Leads <leads@erconsulting.tech>',
       to: ['intramaxx1@gmail.com', 'ernst@erconsulting.tech'],
       reply_to: 'ernst@erconsulting.tech',
       subject: `🎯 New Lead: ${leadData.name || 'Unknown'} - ${leadData.company || 'No Company'} - ${leadData.meetingRequested ? 'Meeting Requested' : 'Contact Only'}`,
