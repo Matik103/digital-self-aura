@@ -39,10 +39,6 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [conversationCount, setConversationCount] = useState(0);
   const [showSimpleContactForm, setShowSimpleContactForm] = useState(false);
 
-  // Debug state changes
-  useEffect(() => {
-    console.log("showSimpleContactForm state changed:", showSimpleContactForm);
-  }, [showSimpleContactForm]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
