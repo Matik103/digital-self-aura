@@ -152,7 +152,16 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        
+        // Handle specific error codes with user-friendly messages
+        if (response.status === 429) {
+          throw new Error("I'm receiving too many requests right now. Please wait a moment and try again.");
+        }
+        if (response.status === 402) {
+          throw new Error("AI service is temporarily unavailable. Please try again later.");
+        }
+        
         throw new Error(errorData.error || "Failed to get response");
       }
 
