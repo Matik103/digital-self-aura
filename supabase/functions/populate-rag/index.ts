@@ -194,6 +194,40 @@ const knowledgeChunks = [
     metadata: { category: "meta", type: "avatar_guide", priority: "medium" }
   },
 
+  // Portfolio Website & Apps
+  {
+    content: "ER Consulting Main Website: The official company website is https://www.erconsulting.tech showcasing AI consulting services, automation expertise, and full-stack development capabilities. Features information about services, portfolio, and contact options for potential clients.",
+    metadata: { category: "portfolio", type: "website", priority: "high" }
+  },
+  {
+    content: "Portfolio Apps Overview: All apps created by Ernst are showcased at https://www.erconsulting.tech/apps. This portfolio demonstrates expertise across different tech stacks, APIs, automation logic, and app architectures. Each app solves unique problems using tailored technology solutions.",
+    metadata: { category: "portfolio", type: "apps_overview", priority: "high" }
+  },
+  {
+    content: "AuraPulse App: Energy and wellness iOS app available on the App Store at https://apps.apple.com/us/app/aurapulse/id6753684900. Built with React Native and Supabase, featuring motion-sensor interactions, secure authentication with universal deep linking, and seamless native app callback flows. Demonstrates iOS integration expertise and cross-platform development.",
+    metadata: { category: "portfolio", type: "app", app_name: "AuraPulse", priority: "high" }
+  },
+  {
+    content: "LifeMirror AI App: AI-powered life playback and self-reflection iOS app available at https://apps.apple.com/us/app/lifemirror-ai/id6753710540. Features AI-driven algorithms for memory reconstruction, sentiment analysis, and pattern recognition. Combines passive tracking with emotional reflection for personalized insights. Showcases AI integration and wellness app development.",
+    metadata: { category: "portfolio", type: "app", app_name: "LifeMirror AI", priority: "high" }
+  },
+  {
+    content: "ScanIt App: Document scanning and processing app available at https://www.erconsulting.tech/apps/scanit. Demonstrates document parsing capabilities, image processing, and practical utility app development. Built for productivity and ease of use.",
+    metadata: { category: "portfolio", type: "app", app_name: "ScanIt", priority: "high" }
+  },
+  {
+    content: "IncomePilot App: Financial tracking and income management app available at https://www.erconsulting.tech/apps/incomepilot. Features budget tracking, income analysis, and financial planning tools. Demonstrates expertise in fintech app development and data visualization.",
+    metadata: { category: "portfolio", type: "app", app_name: "IncomePilot", priority: "high" }
+  },
+  {
+    content: "SavePilot Budget App: Personal budgeting iOS app available on the App Store at https://apps.apple.com/us/app/savepilot-budget/id6755663764. Helps users track expenses, manage budgets, and achieve savings goals. Showcases financial app development with intuitive UX for money management.",
+    metadata: { category: "portfolio", type: "app", app_name: "SavePilot Budget", priority: "high" }
+  },
+  {
+    content: "Portfolio Technology Diversity: The apps demonstrate proficiency across multiple tech stacks including React Native for mobile, Supabase for backend, various APIs for integrations, different automation logic patterns, and diverse app architectures. Each app uses tailored technology solutions based on specific requirements - from AI-powered wellness tools to financial management apps.",
+    metadata: { category: "portfolio", type: "tech_diversity", priority: "high" }
+  },
+
   // HR Q&A - Personal Background
   {
     content: "Q: Tell me about yourself. A: I'm Ernst Romain, a remote-first founder and developer with expertise in AI, automation, and product development. I've built multiple startups including HappeningNow, LifeMirror, AuraPulse, and Sip AI, focusing on innovative, AI-powered tools for wellness, lifestyle, and real-time community engagement. I'm passionate about creating scalable products that integrate cutting-edge AI while maintaining human-centric design.",
