@@ -99,7 +99,7 @@ serve(async (req) => {
           message: leadData.message,
           meetingRequested: leadData.meetingRequested,
           conversationSummary: leadData.conversationSummary,
-          calendlyUrl: 'https://calendly.com/ernstai/45min'
+          calendlyUrl: 'https://calendly.com/ernstromain/meet-with-ernst'
         }),
       });
 

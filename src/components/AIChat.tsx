@@ -120,7 +120,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
   const handleScheduleMeeting = () => {
     // Open Calendly with the booking widget
-    window.open("https://calendly.com/ernstai/45min", "_blank", "noopener,noreferrer");
+    window.open("https://calendly.com/ernstromain/meet-with-ernst", "_blank", "noopener,noreferrer");
   };
 
   const streamChat = async (userMessage: string) => {

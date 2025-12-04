@@ -121,7 +121,7 @@ const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTarg
             </Button>
           </div>
           <div className="text-xs text-blue-700 dark:text-blue-300">
-            Or book directly: <a href="https://calendly.com/ernstai/45min" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">https://calendly.com/ernstai/45min</a>
+            Or book directly: <a href="https://calendly.com/ernstromain/meet-with-ernst" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">https://calendly.com/ernstromain/meet-with-ernst</a>
           </div>
         </div>
       </div>
