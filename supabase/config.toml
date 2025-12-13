@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.populate-rag]
 verify_jwt = false
+
+[functions.save-lead]
+verify_jwt = false
+
+[functions.get-leads]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
