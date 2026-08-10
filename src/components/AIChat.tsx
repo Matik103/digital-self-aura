@@ -65,6 +65,8 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Warm TTS edge isolate so first Listen isn't a cold-start hit
+    void fetch("/api/fn/tts", { method: "GET" }).catch(() => undefined);
     return () => {
       document.body.style.overflow = prev;
       stopSpeaking();

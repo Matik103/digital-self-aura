@@ -15,6 +15,13 @@ serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  // Warm the isolate without calling ElevenLabs (cheap first-Listen speedup)
+  if (req.method === "GET") {
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { text } = await req.json();
     const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
