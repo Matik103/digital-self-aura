@@ -7,6 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Free-path RAG: keyword / full-text style match against documents.content.
+ * Avoids paid embedding APIs (OpenAI). Existing vector column kept for later use.
+ */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -14,67 +18,71 @@ serve(async (req) => {
 
   try {
     const { query, matchCount = 5 } = await req.json();
-    
-    // External Supabase for RAG
-    const EXTERNAL_SUPABASE_URL = 'https://kdvwovuusktvmkkyskba.supabase.co';
-    const EXTERNAL_SUPABASE_SERVICE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!EXTERNAL_SUPABASE_SERVICE_KEY) {
-      throw new Error('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not configured');
     }
 
-    const externalSupabase = createClient(
-      EXTERNAL_SUPABASE_URL,
-      EXTERNAL_SUPABASE_SERVICE_KEY
-    );
-
-    // Get embedding from OpenAI
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    if (!query || typeof query !== 'string') {
+      throw new Error('query is required');
     }
 
-    console.log('Generating embedding for query:', query);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-3-small',
-        input: query,
-      }),
-    });
+    const tokens = query
+      .toLowerCase()
+      .split(/[^a-z0-9]+/i)
+      .map((t: string) => t.trim())
+      .filter((t: string) => t.length >= 3)
+      .slice(0, 6);
 
-    if (!embeddingResponse.ok) {
-      const error = await embeddingResponse.text();
-      console.error('OpenAI embedding error:', error);
-      throw new Error('Failed to generate embedding');
-    }
+    console.log('Keyword RAG for:', query, 'tokens:', tokens);
 
-    const embeddingData = await embeddingResponse.json();
-    const embedding = embeddingData.data[0].embedding;
+    let documents: Array<{ id: number; content: string; metadata: unknown; similarity?: number }> = [];
 
-    console.log('Searching for similar documents...');
+    if (tokens.length > 0) {
+      // OR ilike across significant tokens
+      const orFilter = tokens.map((t: string) => `content.ilike.%${t}%`).join(',');
+      const { data, error } = await supabase
+        .from('documents')
+        .select('id, content, metadata')
+        .or(orFilter)
+        .limit(Math.max(matchCount * 4, 12));
 
-    // Search for similar documents using n8n-compatible approach
-    const { data: documents, error } = await externalSupabase.rpc(
-      'match_documents',
-      {
-        query_embedding: embedding,
-        match_count: matchCount,
-        filter: {},
+      if (error) {
+        console.error('Keyword search error:', error);
+        throw error;
       }
-    );
 
-    if (error) {
-      console.error('Database search error:', error);
-      throw error;
+      // Rank by how many tokens appear in content
+      documents = (data || [])
+        .map((doc) => {
+          const content = (doc.content || '').toLowerCase();
+          const hits = tokens.filter((t: string) => content.includes(t)).length;
+          return { ...doc, similarity: hits / tokens.length };
+        })
+        .sort((a, b) => (b.similarity || 0) - (a.similarity || 0))
+        .slice(0, matchCount);
     }
 
-    console.log(`Found ${documents?.length || 0} relevant documents`);
+    // Fallback: return a few profile/contact docs if nothing matched
+    if (documents.length === 0) {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('id, content, metadata')
+        .or('metadata->>category.eq.profile,metadata->>category.eq.contact,metadata->>category.eq.skills')
+        .limit(matchCount);
+
+      if (error) {
+        console.error('Fallback search error:', error);
+        throw error;
+      }
+      documents = (data || []).map((d) => ({ ...d, similarity: 0.1 }));
+    }
+
+    console.log(`Found ${documents.length} relevant documents`);
 
     return new Response(
       JSON.stringify({ documents }),

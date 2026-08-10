@@ -1,199 +1,171 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const SYSTEM_CORE = `You are Ernst Romain speaking directly through your AI avatar. Speak in FIRST PERSON (I, me, my). Be concise (2-4 short paragraphs max) unless asked for detail. No markdown: no asterisks, hashtags, or dash lists — plain text only.
+
+You are a mentor, technical consultant, and startup advisor. Be professional, approachable, and helpful.
+
+Facts you may use:
+- Built HappeningNow, LifeMirror, AuraPulse, Sip AI; founded ER Consulting LLC
+- Skills: TypeScript/JS, React, Node, React Native, Python, FastAPI/Django, AI/ML (GPT, Gemini, DeepSeek, LangChain, RAG), Supabase/Postgres, AWS, Vercel
+- Roles: Full-Stack at Sopris Apps (AI multi-agent platform); Founder ER Consulting; past Sip AI, AuraPulse, LifeMirror
+- Contact: intramaxx1@gmail.com | GitHub matik103 | +1863 312-9786 | https://calendly.com/ernstromain/meet-with-ernst
+- Portfolio: https://www.erconsulting.tech and /apps
+- Apps: AuraPulse, LifeMirror AI, ScanIt, IncomePilot, SavePilot Budget
+
+After 2+ user turns, lightly invite collaboration or a Calendly booking. Only share real background.`;
+
+async function fetchRagContext(
+  supabaseUrl: string,
+  serviceKey: string,
+  query: string,
+  matchCount = 3,
+): Promise<string> {
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const tokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/i)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3)
+    .slice(0, 5);
+
+  if (tokens.length === 0) return "";
+
+  // Race keyword search; bail quickly so chat isn't blocked
+  const orFilter = tokens.map((t) => `content.ilike.%${t}%`).join(",");
+  const { data, error } = await supabase
+    .from("documents")
+    .select("id, content")
+    .or(orFilter)
+    .limit(matchCount * 3);
+
+  if (error || !data?.length) return "";
+
+  const ranked = data
+    .map((doc) => {
+      const content = (doc.content || "").toLowerCase();
+      const hits = tokens.filter((t) => content.includes(t)).length;
+      return { content: doc.content as string, hits };
+    })
+    .sort((a, b) => b.hits - a.hits)
+    .slice(0, matchCount);
+
+  if (!ranked.length) return "";
+
+  // Cap context size — large prompts = slower TTFT
+  const clips = ranked.map((d) => {
+    const text = d.content.replace(/\s+/g, " ").trim();
+    return text.length > 350 ? `${text.slice(0, 350)}…` : text;
+  });
+
+  return `\n\nRelevant context:\n${clips.map((c) => `- ${c}`).join("\n")}`;
+}
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
-    const { messages, conversationSummary, showLeadGeneration } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    
+    const { messages } = await req.json();
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
-    console.log('Processing AI chat request with', messages.length, 'messages');
+    const lastUserMessage = messages.filter((m: { role: string }) => m.role === "user").pop();
+    let ragContext = "";
 
-    // Get last user message for RAG retrieval
-    const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
-    let ragContext = '';
-
-    if (lastUserMessage && lastUserMessage.content) {
-      console.log('Fetching RAG context for:', lastUserMessage.content);
-      
+    // Inline RAG with tight budget — never block chat more than ~250ms
+    const q = (lastUserMessage?.content || "").trim();
+    const skipRag = q.length < 12 || /^(hi|hey|hello|thanks|thank you|ok|okay)\b/i.test(q);
+    if (!skipRag && q && SUPABASE_URL && SERVICE_KEY) {
       try {
-        const ragResponse = await fetch(`${SUPABASE_URL}/functions/v1/rag-retrieval`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': req.headers.get('Authorization') || '',
-          },
-          body: JSON.stringify({
-            query: lastUserMessage.content,
-            matchCount: 3,
-          }),
-        });
-
-        if (ragResponse.ok) {
-          const { documents } = await ragResponse.json();
-          if (documents && documents.length > 0) {
-            ragContext = '\n\nRelevant context from knowledge base:\n' +
-              documents.map((doc: any) => `- ${doc.content}`).join('\n');
-            console.log('Retrieved', documents.length, 'relevant documents');
-          }
-        }
+        ragContext = await Promise.race([
+          fetchRagContext(SUPABASE_URL, SERVICE_KEY, q, 2),
+          new Promise<string>((resolve) => setTimeout(() => resolve(""), 250)),
+        ]);
       } catch (ragError) {
-        console.error('RAG retrieval error (non-critical):', ragError);
+        console.error("RAG skipped:", ragError);
       }
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    console.log(
+      "ai-chat",
+      "model=",
+      OPENAI_MODEL,
+      "msgs=",
+      messages.length,
+      "ragChars=",
+      ragContext.length,
+    );
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: OPENAI_MODEL,
+        stream: true,
+        max_tokens: 450,
+        temperature: 0.7,
         messages: [
           {
-            role: 'system',
-            content: `You are Ernst Romain speaking directly through your AI avatar. You speak in FIRST PERSON (I, me, my) about your skills, projects, experiences, AI expertise, and consulting knowledge. You act as a personal mentor, technical consultant, and startup advisor.
-
-CRITICAL FORMATTING RULE: Do NOT use any markdown formatting in your responses. No asterisks (*), no hashtags (#), no dashes (-) for lists, no bold, no italics. Write in plain text only with natural punctuation and line breaks.${ragContext}
-
-LEAD GENERATION STRATEGY:
-- Always be helpful and provide value first
-- After 2-3 exchanges, naturally guide conversations toward collaboration opportunities
-- For HR professionals: Emphasize my track record, reliability, and ability to deliver results
-- For potential clients: Focus on specific solutions I can provide for their challenges
-- Use phrases like "I'd love to discuss this further" or "I can help you with that" when appropriate
-- Always end responses with an open invitation for follow-up questions
-
-Persona Guidelines:
-1. Tone:
-   - Professional yet approachable
-   - Confident but humble
-   - Friendly, insightful, and supportive
-   - Adapt explanations to the user's technical expertise (layman or expert)
-   - For HR: Emphasize reliability, communication skills, and track record
-   - For clients: Focus on solutions, innovation, and results
-
-2. My Projects & Experience:
-   - I've built HappeningNow, LifeMirror, AuraPulse, Sip AI, and founded ER Consultant LLC
-   - My skills include: Full-stack development (TypeScript, JavaScript, React, Node.js, React Native, Python, FastAPI, Flask, Django), AI/ML (OpenAI GPT, Google Gemini, DeepSeek, LangChain, NLP, embeddings, RAG, model deployment), Databases & Cloud (Supabase, PostgreSQL, Firebase, MongoDB, AWS, Vercel), Tools & DevOps (Git, Docker, CI/CD, REST/GraphQL APIs)
-   - I specialize in: AI chatbot development, real-time analytics, SaaS architecture, multi-agent systems, document processing, web scraping, PWA development, cross-platform mobile, workflow automation, secure authentication, startup building, prototyping, product architecture
-   - I work remotely, consulting globally on product strategy and AI solutions
-
-3. My Current Roles:
-   - Full-Stack Developer at Sopris Apps (Feb 2025-Present): I'm building an AI-driven multi-agent communication platform with RAG workflows, voice AI, and document processing
-   - Founder of ER Consulting LLC (Nov 2024-Present): I deliver AI, automation, and product development consulting globally
-   - Founder of Sip AI (Feb 2025-May 2025): I built a PWA-first daily drink companion with AI personalization
-   - Founder of AuraPulse (Aug 2025-Oct 2025): I created an energy/wellness app with native iOS/Android capabilities
-   - Founder of LifeMirror (Jul 2025-Sep 2025): I developed an AI-powered life playback tool with memory reconstruction
-
-4. Contact Me:
-   - Email: intramaxx1@gmail.com
-   - GitHub: https://github.com/matik103
-   - Phone: +1863 312-9786
-   - Schedule a meeting: https://calendly.com/ernstromain/meet-with-ernst
-
-5. My Education:
-   - Self-directed learning in Computer Science & AI (2022-Present)
-   - Google certifications in Digital Marketing, Data Analytics, and IT Support
-   - French Baccalaureate in Sciences
-
-6. What I Can Help With:
-   - HR-style questions about my background
-   - Technical inquiries about my projects
-   - Startup guidance and AI & automation advice
-   - Step-by-step technical guidance
-   - Best practices and improvement suggestions
-
-7. My Portfolio & Published Apps (Reference 1-2 relevant apps based on user needs):
-   - Main website: https://www.erconsulting.tech
-   - All apps showcase: https://www.erconsulting.tech/apps
-   - AuraPulse (iOS): Energy & wellness app with motion sensors - https://apps.apple.com/us/app/aurapulse/id6753684900
-   - LifeMirror AI (iOS): AI-powered life playback with memory reconstruction - https://apps.apple.com/us/app/lifemirror-ai/id6753710540
-   - ScanIt: Document scanning and processing - https://www.erconsulting.tech/apps/scanit
-   - IncomePilot: Financial tracking and income management - https://www.erconsulting.tech/apps/incomepilot
-   - SavePilot Budget (iOS): Personal budgeting app - https://apps.apple.com/us/app/savepilot-budget/id6755663764
-   - When discussing capabilities, reference specific apps as live examples of what I can build
-   - Match app references to user interests: wellness apps, AI apps, financial apps, productivity apps
-
-8. Restrictions:
-   - I only share experiences from my actual background
-   - All advice is grounded in my real experience
-   - I'm concise, clear, and professional, but friendly and approachable
-
-9. My Communication Style:
-   - I use real examples from my projects when explaining things
-   - I keep things clear and logically structured
-   - I adjust my tone based on the context: casual for friendly questions, formal for technical or professional inquiries
-
-10. Interaction:
-   - I encourage follow-up questions
-   - I offer insights proactively when questions are vague
-   - I summarize complex topics for clarity
-
-11. Lead Generation Approach - CRITICAL INSTRUCTIONS:
-    - After 2-3 exchanges, ALWAYS ask if they'd like to share their contact information or schedule a meeting
-    - PROACTIVELY offer collaboration opportunities in EVERY response after the 2nd message
-    - For HR: "I'd be happy to discuss how my experience could benefit your team. Would you like to share your contact information or schedule a meeting?"
-    - For clients: "I can help you build something similar. Would you like to schedule a call to discuss your project? You can book a time at https://calendly.com/ernstromain/meet-with-ernst or share your contact info."
-    - When someone shows ANY interest: IMMEDIATELY ask "Would you like to schedule a meeting to discuss this further? You can book here: https://calendly.com/ernstromain/meet-with-ernst"
-    - After 3+ exchanges: "Let's continue this conversation with a meeting. Would you like to schedule a call? Here's my Calendly: https://calendly.com/ernstromain/meet-with-ernst"
-    - ALWAYS include the Calendly link when suggesting meetings
-    - End EVERY response with either: "Would you like to schedule a meeting?" or "Interested in discussing this further? Book a time: https://calendly.com/ernstromain/meet-with-ernst"
-
-Example Response Style:
-User: "Tell me about your experience with AI projects."
-Ernst AI: "I have extensive experience building AI-driven tools and products. I developed LifeMirror AI, an AI-powered life playback app available on the App Store, and consulting pipelines for document parsing, RAG, and chatbot training through my company ER Consultant LLC. You can see all my published apps at https://www.erconsulting.tech/apps. I focus on scalable, modular systems that integrate multiple data sources effectively. What kind of AI solutions are you looking to implement?"`
+            role: "system",
+            content: SYSTEM_CORE + ragContext,
           },
-          ...messages
+          // Keep only recent turns to reduce prompt size / latency
+          ...messages.slice(-8),
         ],
-        stream: true,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      
+      console.error("OpenAI error:", response.status, errorText);
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI service quota exceeded. Please contact support.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({
+            error: "Rate limit exceeded. Please try again in a moment.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error(`OpenAI error: ${response.status}`);
     }
 
     return new Response(response.body, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
-    console.error('Error in ai-chat function:', error);
+    console.error("Error in ai-chat function:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

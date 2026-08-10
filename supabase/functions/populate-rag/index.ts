@@ -387,22 +387,23 @@ serve(async (req) => {
   }
 
   try {
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const EXTERNAL_SUPABASE_URL = 'https://kdvwovuusktvmkkyskba.supabase.co';
-    const EXTERNAL_SUPABASE_SERVICE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+    // Re-embedding requires a paid embedding model. Prefer migrate/import_documents.py
+    // with an existing export. This endpoint is kept for admin refresh when configured.
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    const OPENROUTER_EMBEDDING_MODEL =
+      Deno.env.get('OPENROUTER_EMBEDDING_MODEL') || 'openai/text-embedding-3-small';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY not configured (needed only to re-embed; import migrate export instead)');
     }
 
-    if (!EXTERNAL_SUPABASE_SERVICE_KEY) {
-      throw new Error('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not configured');
     }
 
-    const externalSupabase = createClient(
-      EXTERNAL_SUPABASE_URL,
-      EXTERNAL_SUPABASE_SERVICE_KEY
-    );
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log(`Processing ${knowledgeChunks.length} knowledge chunks...`);
 
@@ -411,30 +412,30 @@ serve(async (req) => {
     for (const chunk of knowledgeChunks) {
       console.log(`Generating embedding for: ${chunk.content.substring(0, 50)}...`);
 
-      // Generate embedding
-      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      const embeddingResponse = await fetch('https://openrouter.ai/api/v1/embeddings', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': Deno.env.get('PROJECT_URL') || supabaseUrl || 'https://erconsulting.tech',
+          'X-Title': 'Ernst AI Avatar',
         },
         body: JSON.stringify({
-          model: 'text-embedding-3-small',
+          model: OPENROUTER_EMBEDDING_MODEL,
           input: chunk.content,
         }),
       });
 
       if (!embeddingResponse.ok) {
         const error = await embeddingResponse.text();
-        console.error('OpenAI embedding error:', error);
-        throw new Error('Failed to generate embedding');
+        console.error('OpenRouter embedding error:', error);
+        throw new Error('Failed to generate embedding via OpenRouter');
       }
 
       const embeddingData = await embeddingResponse.json();
       const embedding = embeddingData.data[0].embedding;
 
-      // Insert into external database
-      const { data, error } = await externalSupabase
+      const { data, error } = await supabase
         .from('documents')
         .insert({
           content: chunk.content,
