@@ -15,6 +15,7 @@ import {
   hasStrongContactIntent,
   hasStrongHrIntent,
 } from "@/lib/chatIntent";
+import { speakWithElevenLabs, stopSpeaking } from "@/lib/tts";
 
 interface Message {
   role: "user" | "assistant";
@@ -49,6 +50,9 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
 
+  const [speakingKey, setSpeakingKey] = useState<string | null>(null);
+  const [ttsLoadingKey, setTtsLoadingKey] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -63,6 +67,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
+      stopSpeaking();
     };
   }, [isOpen]);
 
@@ -107,12 +112,37 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     );
   };
 
-  const speak = (text: string) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text.slice(0, 600));
-    utter.rate = 1.02;
-    window.speechSynthesis.speak(utter);
+  const speak = (text: string, key: string) => {
+    if (speakingKey === key || ttsLoadingKey === key) {
+      stopSpeaking();
+      setSpeakingKey(null);
+      setTtsLoadingKey(null);
+      return;
+    }
+
+    void speakWithElevenLabs(text, {
+      onStart: () => {
+        setTtsLoadingKey(key);
+        // clear loading as soon as playback pipeline starts
+        requestAnimationFrame(() => {
+          setTtsLoadingKey(null);
+          setSpeakingKey(key);
+        });
+      },
+      onEnd: () => {
+        setSpeakingKey(null);
+        setTtsLoadingKey(null);
+      },
+      onError: (err) => {
+        setSpeakingKey(null);
+        setTtsLoadingKey(null);
+        toast({
+          title: "Could not play audio",
+          description: err.message,
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const saveQuickLead = async (email: string, nameHint?: string) => {
@@ -396,12 +426,24 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                     {message.role === "assistant" && message.content && (
                       <button
                         type="button"
-                        onClick={() => speak(message.content)}
+                        onClick={() => speak(message.content, `m-${index}`)}
                         className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-                        aria-label="Listen to reply"
+                        aria-label={
+                          speakingKey === `m-${index}`
+                            ? "Stop audio"
+                            : "Listen with Adam voice"
+                        }
                       >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        Listen
+                        {ttsLoadingKey === `m-${index}` ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Volume2 className="w-3.5 h-3.5" />
+                        )}
+                        {speakingKey === `m-${index}`
+                          ? "Stop"
+                          : ttsLoadingKey === `m-${index}`
+                            ? "Starting…"
+                            : "Listen"}
                       </button>
                     )}
 
