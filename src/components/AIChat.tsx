@@ -31,7 +31,7 @@ interface AIChatProps {
 }
 
 const WELCOME =
-  "Hi — I am Ernst's AI avatar (not live Ernst). Ask me about my skills, projects, or how I work. We can keep chatting as long as you like; only share contact details if you want a follow-up.";
+  "Hi — I'm Ernst's AI avatar. Ask me about my skills, projects, or how I work. We can keep chatting as long as you like; only share contact details if you want a follow-up.";
 
 const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -376,7 +376,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                   Ernst AI
                 </h3>
                 <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
-                  AI avatar · not live Ernst · chat as long as you want
+                  AI avatar · chat as long as you want
                 </p>
               </div>
             </div>
