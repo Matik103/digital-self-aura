@@ -9,44 +9,49 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SYSTEM_CORE = `You are Ernst Romain speaking directly through your AI avatar. Speak in FIRST PERSON (I, me, my). Be concise (2-4 short paragraphs max) unless asked for detail. No markdown: no asterisks, hashtags, or dash lists — plain text only.
+const SYSTEM_CORE = `You are the AI avatar of Ernst Romain. Speak in FIRST PERSON (I, me, my) as Ernst.
+You are NOT live Ernst on a call — you are his digital avatar answering from his background.
+Be warm, concise, and useful (usually 2-4 short paragraphs). Plain text only: no markdown, no asterisks, no hashtags, no dash bullet lists.
 
-You are a mentor, technical consultant, and startup advisor. Be professional, approachable, and helpful.
+Voice:
+- Professional but approachable, confident without bragging
+- Prefer concrete project examples over buzzwords
+- Match the visitor's level (recruiter vs technical founder)
 
-Facts you may use:
-- Built HappeningNow, LifeMirror, AuraPulse, Sip AI; founded ER Consulting LLC
-- Skills: TypeScript/JS, React, Node, React Native, Python, FastAPI/Django, AI/ML (GPT, Gemini, DeepSeek, LangChain, RAG), Supabase/Postgres, AWS, Vercel
-- Roles: Full-Stack at Sopris Apps (AI multi-agent platform); Founder ER Consulting; past Sip AI, AuraPulse, LifeMirror
-- Contact: intramaxx1@gmail.com | GitHub matik103 | +1863 312-9786 | https://calendly.com/ernstromain/meet-with-ernst
-- Portfolio: https://www.erconsulting.tech and /apps
-- Apps: AuraPulse, LifeMirror AI, ScanIt, IncomePilot, SavePilot Budget
+Ground truth you may use:
+- Founder of ER Consulting LLC; full-stack / AI engineer
+- Shipped HappeningNow, LifeMirror, AuraPulse, Sip AI; also ScanIt, IncomePilot, SavePilot
+- Stack: TypeScript, React, Node, React Native, Python, FastAPI/Django, LLM apps, LangChain, RAG, Supabase/Postgres, AWS, Vercel
+- Current: Full-Stack at Sopris Apps (multi-agent AI platform); consulting via ER Consulting
+- Contact for the human Ernst: intramaxx1@gmail.com | GitHub matik103 | https://calendly.com/ernstromain/meet-with-ernst | https://www.erconsulting.tech/apps
 
-After 2+ user turns, lightly invite collaboration or a Calendly booking. Only share real background.`;
+Conversation rules (critical for trust):
+1. Lead with value. Answer the question fully before any soft invite.
+2. Do NOT pitch meetings or ask for contact on every reply.
+3. Only if the visitor clearly wants to hire, collaborate, get a quote, or book time, you may mention once that they can leave contact details or use Calendly — and that they can also keep chatting.
+4. Never pressure, never guilt, never say the chat is ending.
+5. If they want to keep exploring topics, encourage that.
+6. Only claim experiences that are listed above or in provided context.`;
 
-async function fetchRagContext(
-  supabaseUrl: string,
-  serviceKey: string,
+async function keywordRag(
+  supabase: ReturnType<typeof createClient>,
   query: string,
-  matchCount = 3,
+  matchCount: number,
 ): Promise<string> {
-  const supabase = createClient(supabaseUrl, serviceKey);
   const tokens = query
     .toLowerCase()
     .split(/[^a-z0-9]+/i)
     .map((t) => t.trim())
     .filter((t) => t.length >= 3)
     .slice(0, 5);
+  if (!tokens.length) return "";
 
-  if (tokens.length === 0) return "";
-
-  // Race keyword search; bail quickly so chat isn't blocked
   const orFilter = tokens.map((t) => `content.ilike.%${t}%`).join(",");
   const { data, error } = await supabase
     .from("documents")
     .select("id, content")
     .or(orFilter)
     .limit(matchCount * 3);
-
   if (error || !data?.length) return "";
 
   const ranked = data
@@ -58,15 +63,67 @@ async function fetchRagContext(
     .sort((a, b) => b.hits - a.hits)
     .slice(0, matchCount);
 
-  if (!ranked.length) return "";
+  return formatClips(ranked.map((d) => d.content));
+}
 
-  // Cap context size — large prompts = slower TTFT
-  const clips = ranked.map((d) => {
-    const text = d.content.replace(/\s+/g, " ").trim();
+async function vectorRag(
+  supabase: ReturnType<typeof createClient>,
+  openaiKey: string,
+  query: string,
+  matchCount: number,
+): Promise<string> {
+  const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openaiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: query,
+    }),
+  });
+  if (!embeddingResponse.ok) {
+    throw new Error(`embedding ${embeddingResponse.status}`);
+  }
+  const embeddingData = await embeddingResponse.json();
+  const embedding = embeddingData.data?.[0]?.embedding;
+  if (!embedding) throw new Error("no embedding");
+
+  const { data, error } = await supabase.rpc("match_documents", {
+    query_embedding: embedding,
+    match_count: matchCount,
+    filter: {},
+  });
+  if (error) throw error;
+  const docs = (data || []) as Array<{ content?: string }>;
+  return formatClips(docs.map((d) => d.content || "").filter(Boolean));
+}
+
+function formatClips(contents: string[]): string {
+  if (!contents.length) return "";
+  const clips = contents.map((raw) => {
+    const text = raw.replace(/\s+/g, " ").trim();
     return text.length > 350 ? `${text.slice(0, 350)}…` : text;
   });
+  return `\n\nRelevant context from knowledge base:\n${clips.map((c) => `- ${c}`).join("\n")}`;
+}
 
-  return `\n\nRelevant context:\n${clips.map((c) => `- ${c}`).join("\n")}`;
+async function fetchRagContext(
+  supabaseUrl: string,
+  serviceKey: string,
+  openaiKey: string,
+  query: string,
+  matchCount = 2,
+): Promise<string> {
+  const supabase = createClient(supabaseUrl, serviceKey);
+  try {
+    const vector = await vectorRag(supabase, openaiKey, query, matchCount);
+    if (vector) return vector;
+  } catch (err) {
+    console.error("vector RAG fallback:", err);
+  }
+  return keywordRag(supabase, query, matchCount);
 }
 
 serve(async (req) => {
@@ -75,7 +132,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, leadAlreadyCaptured } = await req.json();
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -85,22 +142,29 @@ serve(async (req) => {
       throw new Error("OPENAI_API_KEY is not configured");
     }
 
-    const lastUserMessage = messages.filter((m: { role: string }) => m.role === "user").pop();
+    const lastUserMessage = messages
+      .filter((m: { role: string }) => m.role === "user")
+      .pop();
     let ragContext = "";
 
-    // Inline RAG with tight budget — never block chat more than ~250ms
     const q = (lastUserMessage?.content || "").trim();
-    const skipRag = q.length < 12 || /^(hi|hey|hello|thanks|thank you|ok|okay)\b/i.test(q);
+    const skipRag =
+      q.length < 12 || /^(hi|hey|hello|thanks|thank you|ok|okay)\b/i.test(q);
     if (!skipRag && q && SUPABASE_URL && SERVICE_KEY) {
       try {
+        // Allow a bit more budget for embeddings; still cap so chat stays snappy
         ragContext = await Promise.race([
-          fetchRagContext(SUPABASE_URL, SERVICE_KEY, q, 2),
-          new Promise<string>((resolve) => setTimeout(() => resolve(""), 250)),
+          fetchRagContext(SUPABASE_URL, SERVICE_KEY, OPENAI_API_KEY, q, 2),
+          new Promise<string>((resolve) => setTimeout(() => resolve(""), 900)),
         ]);
       } catch (ragError) {
         console.error("RAG skipped:", ragError);
       }
     }
+
+    const leadNote = leadAlreadyCaptured
+      ? "\n\nVisitor already shared contact details. Do not ask again — just be helpful."
+      : "\n\nVisitor has not shared contact yet. Do not nag. Soft invite only on clear hiring/project intent.";
 
     console.log(
       "ai-chat",
@@ -121,15 +185,14 @@ serve(async (req) => {
       body: JSON.stringify({
         model: OPENAI_MODEL,
         stream: true,
-        max_tokens: 450,
+        max_tokens: 500,
         temperature: 0.7,
         messages: [
           {
             role: "system",
-            content: SYSTEM_CORE + ragContext,
+            content: SYSTEM_CORE + leadNote + ragContext,
           },
-          // Keep only recent turns to reduce prompt size / latency
-          ...messages.slice(-8),
+          ...messages.slice(-10),
         ],
       }),
     });

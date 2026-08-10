@@ -1,131 +1,73 @@
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Award, Calendar, MessageSquare } from "lucide-react";
+import { Users, Award, Building2, Calendar, MessageSquare } from "lucide-react";
 
 interface HRTargetingProps {
-  userMessage: string;
+  /** Parent already decided this session should show HR card once */
+  visible: boolean;
+  onDismiss: () => void;
   onContactRequest: () => void;
   onMeetingRequest: () => void;
 }
 
-const HRTargeting = ({ userMessage, onContactRequest, onMeetingRequest }: HRTargetingProps) => {
-  const [isHRProfessional, setIsHRProfessional] = useState(false);
-  const [confidence, setConfidence] = useState(0);
-
-  useEffect(() => {
-    // Detect HR-related keywords and phrases
-    const hrKeywords = [
-      'hr', 'human resources', 'recruiter', 'recruitment', 'hiring', 'talent acquisition',
-      'people operations', 'employee', 'candidate', 'resume', 'cv', 'interview',
-      'job posting', 'position', 'role', 'team lead', 'manager', 'director',
-      'head of', 'vp of', 'chief', 'executive', 'leadership', 'workforce',
-      'onboarding', 'training', 'development', 'performance', 'compensation',
-      'benefits', 'culture', 'diversity', 'inclusion', 'retention'
-    ];
-
-    const companyKeywords = [
-      'company', 'corporation', 'inc', 'llc', 'ltd', 'corp', 'enterprise',
-      'startup', 'scale-up', 'organization', 'firm', 'agency', 'consultancy'
-    ];
-
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Calculate confidence score
-    let score = 0;
-    hrKeywords.forEach(keyword => {
-      if (lowerMessage.includes(keyword)) {
-        score += 1;
-      }
-    });
-    
-    companyKeywords.forEach(keyword => {
-      if (lowerMessage.includes(keyword)) {
-        score += 0.5;
-      }
-    });
-
-    // Additional context clues
-    if (lowerMessage.includes('looking for') || lowerMessage.includes('need someone')) {
-      score += 1;
-    }
-    
-    if (lowerMessage.includes('experience') || lowerMessage.includes('background')) {
-      score += 0.5;
-    }
-
-    setConfidence(score);
-    setIsHRProfessional(score >= 2);
-  }, [userMessage]);
-
-  if (!isHRProfessional) return null;
+/**
+ * Shown at most once per session when strong HR intent is detected.
+ */
+const HRTargeting = ({
+  visible,
+  onDismiss,
+  onContactRequest,
+  onMeetingRequest,
+}: HRTargetingProps) => {
+  if (!visible) return null;
 
   return (
-    <Card className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+    <div className="mt-3 p-3 sm:p-4 rounded-lg border border-border/60 bg-muted/40">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-          <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <Users className="w-4 h-4 text-primary" />
         </div>
-        
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-              For HR Professionals
-            </h4>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              {confidence >= 3 ? 'High Match' : 'Potential Match'}
+
+        <div className="flex-1 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="font-semibold text-sm text-foreground">Hiring context</h4>
+            <Badge variant="secondary" className="text-xs">
+              Optional
             </Badge>
           </div>
-          
-          <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-            I understand you're looking for talent. Here's what makes me a strong candidate:
+
+          <p className="text-sm text-muted-foreground">
+            If you are evaluating candidates, I can share a concise fit summary or you can
+            book time with the real Ernst. No pressure either way.
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Award className="w-4 h-4 text-blue-600" />
-              <span>Proven track record with 5+ successful projects</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Award className="w-3.5 h-3.5 text-primary" />
+              Proven shipped AI and product work
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Building2 className="w-4 h-4 text-blue-600" />
-              <span>Remote-first, globally available</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <MessageSquare className="w-4 h-4 text-blue-600" />
-              <span>Strong communication & collaboration skills</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              <span>Available for immediate start</span>
+            <div className="flex items-center gap-2">
+              <Building2 className="w-3.5 h-3.5 text-primary" />
+              Remote-first, globally available
             </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-2 mb-2">
-            <Button
-              size="sm"
-              onClick={onContactRequest}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button size="sm" onClick={onContactRequest}>
               <MessageSquare className="w-4 h-4 mr-2" />
-              Share Contact Info
+              Leave contact
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onMeetingRequest}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/20"
-            >
+            <Button size="sm" variant="outline" onClick={onMeetingRequest}>
               <Calendar className="w-4 h-4 mr-2" />
-              Schedule Interview
+              Book interview
             </Button>
-          </div>
-          <div className="text-xs text-blue-700 dark:text-blue-300">
-            Or book directly: <a href="https://calendly.com/ernstromain/meet-with-ernst" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">https://calendly.com/ernstromain/meet-with-ernst</a>
+            <Button size="sm" variant="ghost" onClick={onDismiss}>
+              Keep chatting
+            </Button>
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

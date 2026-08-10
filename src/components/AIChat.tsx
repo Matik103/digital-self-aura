@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { X, Send, User, Loader2, Calendar, MessageSquare, Phone } from "lucide-react";
+import { X, Send, User, Loader2, Calendar, MessageSquare, Mail, Volume2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import ContactForm, { LeadData } from "./ContactForm";
@@ -10,12 +10,18 @@ import SimpleContactForm, { SimpleContactData } from "./SimpleContactForm";
 import HRTargeting from "./HRTargeting";
 import profilePic from "@/assets/profile-picture-edited.jpg";
 import { callFunction } from "@/lib/functions";
+import {
+  extractEmail,
+  hasStrongContactIntent,
+  hasStrongHrIntent,
+} from "@/lib/chatIntent";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  showContactPrompt?: boolean;
-  isLeadGeneration?: boolean;
+  showSoftOffer?: boolean;
+  showHrCard?: boolean;
+  showEmailAsk?: boolean;
 }
 
 interface AIChatProps {
@@ -23,117 +29,141 @@ interface AIChatProps {
   onClose: () => void;
 }
 
+const WELCOME =
+  "Hi — I am Ernst's AI avatar (not live Ernst). Ask me about my skills, projects, or how I work. We can keep chatting as long as you like; only share contact details if you want a follow-up.";
+
 const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hello! I'm Ernst AI, your AI-powered digital avatar. I'm here to help you learn about my skills, experience, and how I can assist with your projects. Whether you're in HR looking to learn more about my background, or a potential client interested in my services, feel free to ask me anything!",
-    },
+    { role: "assistant", content: WELCOME },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [conversationSummary, setConversationSummary] = useState("");
   const [interestArea, setInterestArea] = useState("");
-  const [lastUserMessage, setLastUserMessage] = useState("");
-  const [showEndConversationPrompt, setShowEndConversationPrompt] = useState(false);
   const [conversationCount, setConversationCount] = useState(0);
   const [showSimpleContactForm, setShowSimpleContactForm] = useState(false);
+  const [softOfferShown, setSoftOfferShown] = useState(false);
+  const [hrCardShown, setHrCardShown] = useState(false);
+  const [emailAskShown, setEmailAskShown] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleLeadCaptured = (leadData: LeadData) => {
     setShowContactForm(false);
-    setConversationSummary("");
-    setInterestArea("");
-    
-    // Add a thank you message
-    const thankYouMessage: Message = {
-      role: "assistant",
-      content: `Thank you ${leadData.name}! I've received your information and I'm excited about the possibility of working together on ${leadData.interestArea}. I'll review your details and get back to you within 24 hours. In the meantime, feel free to ask me any other questions about my experience or projects!`,
-    };
-    
-    setMessages(prev => [...prev, thankYouMessage]);
-    
+    setLeadCaptured(true);
+    setInterestArea(leadData.interestArea || "");
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: `Thanks ${leadData.name}. I have your details and Ernst will follow up within 24 hours. Ask me anything else while you are here.`,
+      },
+    ]);
     toast({
-      title: "Lead Captured!",
-      description: "Thank you for your interest. I'll be in touch soon!",
+      title: "Got it",
+      description: "Your info was sent. You can keep chatting.",
     });
-  };
-
-  const shouldShowContactPrompt = (message: string): boolean => {
-    const contactKeywords = [
-      'hire', 'hiring', 'job', 'position', 'role', 'work with', 'collaborate',
-      'project', 'consulting', 'services', 'help', 'assist', 'build',
-      'develop', 'create', 'interested', 'contact', 'reach out', 'meeting',
-      'discuss', 'opportunity', 'partnership', 'team', 'company'
-    ];
-    
-    const lowerMessage = message.toLowerCase();
-    const hasKeywords = contactKeywords.some(keyword => lowerMessage.includes(keyword));
-    const hasEnoughMessages = messages.length >= 3;
-    const shouldShow = hasKeywords && hasEnoughMessages;
-    
-    console.log("shouldShowContactPrompt check:", {
-      message: lowerMessage,
-      hasKeywords,
-      hasEnoughMessages,
-      messagesLength: messages.length,
-      shouldShow
-    });
-    
-    return shouldShow;
-  };
-
-  const shouldShowEndConversationPrompt = (): boolean => {
-    // Show after 5+ exchanges and no contact form shown yet
-    return conversationCount >= 5 && !showContactForm && !showEndConversationPrompt;
-  };
-
-  const handleEndConversation = () => {
-    setShowEndConversationPrompt(true);
-    setShowContactForm(true);
   };
 
   const handleSimpleContactSaved = (contactData: SimpleContactData) => {
     setShowSimpleContactForm(false);
-    setConversationSummary("");
-    
-    // Add a thank you message
-    const thankYouMessage: Message = {
-      role: "assistant",
-      content: `Thank you ${contactData.name}! I've received your contact information and I'll be in touch soon. Feel free to ask me any other questions!`,
-    };
-    
-    setMessages(prev => [...prev, thankYouMessage]);
-    
+    setLeadCaptured(true);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: `Thanks ${contactData.name}. I saved your contact for Ernst. Feel free to keep asking questions.`,
+      },
+    ]);
     toast({
-      title: "Contact Saved!",
-      description: "Thank you for sharing your information. I'll be in touch soon!",
+      title: "Contact saved",
+      description: "You can continue the conversation anytime.",
     });
   };
 
   const handleScheduleMeeting = () => {
-    // Open Calendly with the booking widget
-    window.open("https://calendly.com/ernstromain/meet-with-ernst", "_blank", "noopener,noreferrer");
+    window.open(
+      "https://calendly.com/ernstromain/meet-with-ernst",
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
+
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text.slice(0, 600));
+    utter.rate = 1.02;
+    window.speechSynthesis.speak(utter);
+  };
+
+  const saveQuickLead = async (email: string, nameHint?: string) => {
+    try {
+      const response = await callFunction("save-lead", {
+        method: "POST",
+        body: JSON.stringify({
+          name: nameHint || email.split("@")[0],
+          email,
+          phone: null,
+          company: null,
+          jobTitle: null,
+          message: "Shared email in chat",
+          conversationSummary,
+          interestArea: interestArea || "general",
+          meetingRequested: false,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to save");
+      setLeadCaptured(true);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Perfect — I have ${email}. Ernst can reach out from there. Keep chatting if you want more detail on anything.`,
+        },
+      ]);
+      toast({ title: "Email saved", description: "Thanks — no more forms needed." });
+    } catch {
+      toast({
+        title: "Could not save email",
+        description: "Try the contact form instead.",
+        variant: "destructive",
+      });
+      setShowSimpleContactForm(true);
+    }
   };
 
   const streamChat = async (userMessage: string) => {
+    const emailInMessage = extractEmail(userMessage);
+    if (emailInMessage && !leadCaptured && emailAskShown) {
+      const newMessages = [...messages, { role: "user" as const, content: userMessage }];
+      setMessages(newMessages);
+      setConversationCount((c) => c + 1);
+      setConversationSummary((s) => `${s}\nUser: ${userMessage}`);
+      setInput("");
+      await saveQuickLead(emailInMessage);
+      return;
+    }
+
     const newMessages = [...messages, { role: "user" as const, content: userMessage }];
     setMessages(newMessages);
-    setLastUserMessage(userMessage);
-    setConversationCount(prev => prev + 1);
+    const nextCount = conversationCount + 1;
+    setConversationCount(nextCount);
     setIsLoading(true);
 
-    // Update conversation summary for lead generation
-    const currentSummary = conversationSummary + `\nUser: ${userMessage}`;
+    const currentSummary = `${conversationSummary}\nUser: ${userMessage}`;
     setConversationSummary(currentSummary);
+
+    const strongIntent = hasStrongContactIntent(userMessage);
+    const hrIntent = hasStrongHrIntent(userMessage);
 
     try {
       const response = await callFunction("ai-chat", {
@@ -141,21 +171,17 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         body: JSON.stringify({
           messages: newMessages,
           conversationSummary: currentSummary,
-          showLeadGeneration: true,
+          leadAlreadyCaptured: leadCaptured,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        
-        // Handle specific error codes with user-friendly messages
         if (response.status === 429) {
-          throw new Error("I'm receiving too many requests right now. Please wait a moment and try again.");
+          throw new Error(
+            "I'm receiving too many requests right now. Please wait a moment and try again.",
+          );
         }
-        if (response.status === 402) {
-          throw new Error("AI service is temporarily unavailable. Please try again later.");
-        }
-        
         throw new Error(errorData.error || "Failed to get response");
       }
 
@@ -190,27 +216,44 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
             if (content) {
               assistantMessage += content;
               setMessages((prev) => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1].content = assistantMessage;
-                return newMessages;
+                const next = [...prev];
+                next[next.length - 1] = {
+                  ...next[next.length - 1],
+                  content: assistantMessage,
+                };
+                return next;
               });
             }
-          } catch (e) {
-            console.error("Error parsing SSE:", e);
+          } catch {
+            // ignore partial SSE JSON
           }
         }
       }
 
-      // After the AI response is complete, check if we should show contact prompt
-      if (shouldShowContactPrompt(userMessage)) {
-        console.log("Setting showContactPrompt to true");
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1].showContactPrompt = true;
-          console.log("Updated message with showContactPrompt:", newMessages[newMessages.length - 1]);
-          return newMessages;
-        });
-      }
+      // Single soft CTA path — never stack HR + contact + end prompts
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = { ...next[next.length - 1] };
+
+        if (!leadCaptured && hrIntent && !hrCardShown) {
+          last.showHrCard = true;
+          setHrCardShown(true);
+        } else if (!leadCaptured && strongIntent && !softOfferShown) {
+          last.showSoftOffer = true;
+          setSoftOfferShown(true);
+        } else if (
+          !leadCaptured &&
+          !emailAskShown &&
+          nextCount >= 6 &&
+          !strongIntent
+        ) {
+          last.showEmailAsk = true;
+          setEmailAskShown(true);
+        }
+
+        next[next.length - 1] = last;
+        return next;
+      });
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -227,17 +270,15 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-
     const userMessage = input.trim();
     setInput("");
-    streamChat(userMessage);
+    void streamChat(userMessage);
   };
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Contact Form Modal */}
       {showContactForm && (
         <ContactForm
           onClose={() => setShowContactForm(false)}
@@ -247,192 +288,220 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         />
       )}
 
-      {/* Simple Contact Form Modal */}
       {showSimpleContactForm && (
         <SimpleContactForm
-          onClose={() => {
-            console.log("Closing simple contact form");
-            setShowSimpleContactForm(false);
-          }}
+          onClose={() => setShowSimpleContactForm(false)}
           onContactSaved={handleSimpleContactSaved}
           conversationSummary={conversationSummary}
         />
       )}
 
-
-      {/* Main Chat Interface */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-      <Card className="w-full max-w-2xl h-[95vh] max-h-[800px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-primary/30 animate-glow-pulse">
-              <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h3 className="font-display text-sm sm:text-base font-semibold text-foreground">Ernst AI</h3>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="hover:bg-destructive/20 hover:text-destructive"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        {/* Messages */}
-        <ScrollArea className="flex-1 p-3 sm:p-4">
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex gap-3 animate-fade-in ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                {message.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
-                    <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                 <div
-                  className={`max-w-[90%] sm:max-w-[85%] rounded-lg p-3 ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card border border-border/50"
-                  }`}
-                 >
-                   <p className="text-sm whitespace-pre-wrap break-words">
-                     {message.role === "assistant" 
-                       ? message.content
-                           .replace(/\*\*/g, '') // Remove bold markers
-                           .replace(/\*/g, '')   // Remove italic markers
-                           .replace(/^#+\s/gm, '') // Remove headers
-                       : message.content
-                     }
-                   </p>
-                   
-                   {/* HR Targeting for Assistant Messages */}
-                  {message.role === "assistant" && lastUserMessage && (
-                    <HRTargeting
-                      userMessage={lastUserMessage}
-                      onContactRequest={() => setShowSimpleContactForm(true)}
-                      onMeetingRequest={handleScheduleMeeting}
-                    />
-                  )}
-
-                  {/* End Conversation Prompt */}
-                  {message.role === "assistant" && shouldShowEndConversationPrompt() && (
-                    <div className="mt-3 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                          <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-                            Let's Connect!
-                          </h4>
-                          <p className="text-sm text-green-800 dark:text-green-200 mb-3">
-                            I'd love to continue this conversation and explore how we can work together. 
-                            Would you like to schedule a meeting to discuss your project or opportunities?
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              size="sm"
-                              onClick={handleEndConversation}
-                              className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                            >
-                              <Calendar className="w-3 h-3 mr-1" />
-                              Yes, Let's Meet!
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setShowEndConversationPrompt(false)}
-                              className="text-xs border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/20"
-                            >
-                              Maybe Later
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Contact Prompt for Assistant Messages */}
-                  {message.role === "assistant" && message.showContactPrompt && (
-                    <div className="mt-3 p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
-                      <p className="text-sm font-medium text-foreground mb-3">
-                        Interested in working together?
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-2 mb-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            console.log("Share Contact Info button clicked");
-                            setShowSimpleContactForm(true);
-                          }}
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Share Contact Info
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleScheduleMeeting}
-                        >
-                          <Calendar className="w-4 h-4 mr-2" />
-                          Schedule Meeting
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-accent" />
-                  </div>
-                )}
+        <Card className="w-full max-w-2xl h-[95vh] max-h-[800px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-primary/30 animate-glow-pulse flex-shrink-0">
+                <img
+                  src={profilePic}
+                  alt="Ernst AI"
+                  className="w-full h-full object-cover"
+                />
               </div>
-            ))}
-            {isLoading && (
-              <div className="flex gap-3 justify-start animate-fade-in">
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
-                  <img src={profilePic} alt="Ernst AI" className="w-full h-full object-cover" />
-                </div>
-                <div className="bg-card border border-border/50 rounded-lg p-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                </div>
+              <div className="min-w-0">
+                <h3 className="font-display text-sm sm:text-base font-semibold text-foreground truncate">
+                  Ernst AI
+                </h3>
+                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                  AI avatar · not live Ernst · chat as long as you want
+                </p>
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-
-        {/* Input */}
-        <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything..."
-              disabled={isLoading}
-              className="flex-1 bg-input border-border/50 focus:border-primary text-sm sm:text-base"
-            />
+            </div>
             <Button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan px-3 sm:px-4"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
             >
-              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              <X className="w-5 h-5" />
             </Button>
           </div>
-        </form>
-      </Card>
+
+          <ScrollArea className="flex-1 p-3 sm:p-4">
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-3 animate-fade-in ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
+                      <img
+                        src={profilePic}
+                        alt="Ernst AI"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[90%] sm:max-w-[85%] rounded-lg p-3 ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border/50"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {message.role === "assistant"
+                        ? message.content
+                            .replace(/\*\*/g, "")
+                            .replace(/\*/g, "")
+                            .replace(/^#+\s/gm, "")
+                        : message.content}
+                    </p>
+
+                    {message.role === "assistant" && message.content && (
+                      <button
+                        type="button"
+                        onClick={() => speak(message.content)}
+                        className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                        aria-label="Listen to reply"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        Listen
+                      </button>
+                    )}
+
+                    {message.role === "assistant" && message.showHrCard && (
+                      <HRTargeting
+                        visible
+                        onDismiss={() => {
+                          setMessages((prev) => {
+                            const next = [...prev];
+                            next[index] = { ...next[index], showHrCard: false };
+                            return next;
+                          });
+                        }}
+                        onContactRequest={() => setShowSimpleContactForm(true)}
+                        onMeetingRequest={handleScheduleMeeting}
+                      />
+                    )}
+
+                    {message.role === "assistant" && message.showSoftOffer && (
+                      <div className="mt-3 p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
+                        <p className="text-sm text-foreground">
+                          If useful, you can leave a note for Ernst or book a call. Or just keep
+                          chatting.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setShowSimpleContactForm(true)}
+                          >
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Leave contact
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleScheduleMeeting}
+                          >
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Book a call
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setMessages((prev) => {
+                                const next = [...prev];
+                                next[index] = {
+                                  ...next[index],
+                                  showSoftOffer: false,
+                                };
+                                return next;
+                              });
+                            }}
+                          >
+                            Keep chatting
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {message.role === "assistant" && message.showEmailAsk && (
+                      <div className="mt-3 p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
+                        <p className="text-sm text-foreground flex items-start gap-2">
+                          <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          Optional: drop your email in the chat if you want Ernst to follow up —
+                          or ignore this and keep asking questions.
+                        </p>
+                        <div className="flex gap-2">
+                          <Input
+                            type="email"
+                            placeholder="you@company.com"
+                            value={pendingEmail}
+                            onChange={(e) => setPendingEmail(e.target.value)}
+                            className="text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            disabled={!pendingEmail.includes("@")}
+                            onClick={() => void saveQuickLead(pendingEmail.trim())}
+                          >
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {message.role === "user" && (
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-accent" />
+                    </div>
+                  )}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex gap-3 justify-start animate-fade-in">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
+                    <img
+                      src={profilePic}
+                      alt="Ernst AI"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="bg-card border border-border/50 rounded-lg p-3">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          <form
+            onSubmit={handleSubmit}
+            className="p-3 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5"
+          >
+            <div className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything..."
+                disabled={isLoading}
+                className="flex-1 bg-input border-border/50 focus:border-primary text-sm sm:text-base"
+              />
+              <Button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan px-3 sm:px-4"
+              >
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </>
   );
