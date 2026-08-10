@@ -264,12 +264,12 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         {
           role: "system",
           content:
-            "Connecting you to Ernst on Telegram. Stay on this chat — his replies will appear here. You can keep typing in the meantime.",
+            "Connecting you to Ernst now. Stay in this chat — his replies will show up here. You can keep typing in the meantime.",
         },
       ]);
       toast({
-        title: "Handoff started",
-        description: "Ernst was notified on Telegram.",
+        title: "Connected",
+        description: "Ernst has been notified. Replies will appear here.",
       });
     } catch (error) {
       toast({
@@ -520,8 +520,8 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   const handoffLive = Boolean(handoff && handoff.status !== "closed");
   const subtitle = handoffLive
     ? handoff?.status === "waiting"
-      ? "Live handoff · waiting for Ernst…"
-      : "Live with Ernst · via Telegram"
+      ? "Live chat · connecting…"
+      : "Live with Ernst"
     : "AI avatar · chat as long as you want";
 
   if (!isOpen) return null;

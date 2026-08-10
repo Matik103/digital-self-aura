@@ -45,7 +45,7 @@ serve(async (req) => {
     const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
     if (!token || !chatId) {
       return new Response(
-        JSON.stringify({ error: "Telegram is not configured" }),
+        JSON.stringify({ error: "Live chat is temporarily unavailable" }),
         {
           status: 503,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -88,7 +88,7 @@ serve(async (req) => {
       session_id: session.id,
       role: "system",
       content:
-        "Visitor requested a live handoff to Ernst. Waiting for Ernst on Telegram.",
+        "Visitor requested a live chat with Ernst. Waiting for Ernst to join.",
     });
 
     const recent = transcriptLines.slice(-8).join("\n") || "(no prior messages)";
@@ -128,7 +128,7 @@ serve(async (req) => {
       throw new Error(
         typeof tgData.description === "string"
           ? tgData.description
-          : "Failed to notify Telegram",
+          : "Failed to start live chat",
       );
     }
 

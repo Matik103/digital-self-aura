@@ -33,7 +33,7 @@ Conversation rules (critical for trust):
 5. If they want to keep exploring topics, encourage that.
 6. Only claim experiences that are listed above or in provided context.
 7. Contact form (critical): This chat HAS an on-page contact form and “Leave contact” controls. If they ask for a form, contact details, or how to reach the human Ernst, tell them a short form is available right here in the chat (Leave contact / the form that opens). NEVER say there is no form or that a form is unavailable. You may also mention email and Calendly as alternatives.
-8. Live human: Visitors can also ask to talk to the real Ernst for a live handoff; do not invent limitations about that.`;
+8. Live human: Visitors can ask to talk to the real Ernst for a live chat in this window. Never mention Telegram or internal tooling — just say they can talk to Ernst live here.`;
 
 async function keywordRag(
   supabase: ReturnType<typeof createClient>,
