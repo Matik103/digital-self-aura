@@ -119,9 +119,9 @@ const ContactForm = ({ onClose, onLeadCaptured, conversationSummary, interestAre
       )}
 
       {/* Main Contact Form */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
-        <div className="p-6">
+      <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 bg-background/80 backdrop-blur-sm">
+      <Card className="w-full sm:max-w-2xl h-[min(94dvh,100%)] sm:h-auto max-h-[100dvh] sm:max-h-[90dvh] overflow-y-auto rounded-t-2xl sm:rounded-xl bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan pb-[env(safe-area-inset-bottom)]">
+        <div className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Calendar className="w-5 h-5 text-primary" />

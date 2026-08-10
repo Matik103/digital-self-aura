@@ -23,7 +23,7 @@ const Index = () => {
     <div className="relative min-h-screen">
       {/* Greeting Popup */}
       {!isChatOpen && showGreeting && (
-        <Card className="fixed bottom-24 right-4 sm:bottom-28 sm:right-6 z-50 p-4 max-w-xs bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan animate-fade-in">
+        <Card className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] sm:bottom-28 sm:right-6 z-50 p-4 max-w-[min(20rem,calc(100vw-2rem))] bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan animate-fade-in">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-[wave_1s_ease-in-out_3]">
               <Hand className="w-5 h-5 text-primary-foreground" />
@@ -52,7 +52,7 @@ const Index = () => {
       {!isChatOpen && (
         <Button
           onClick={handleChatOpen}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0 overflow-hidden bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse border-2 border-primary/30"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] sm:bottom-6 sm:right-6 z-40 w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0 overflow-hidden bg-primary hover:bg-primary/90 shadow-glow-cyan hover:shadow-glow-pink transition-all duration-300 animate-glow-pulse border-2 border-primary/30"
           size="icon"
         >
           <img 

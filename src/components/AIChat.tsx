@@ -56,6 +56,16 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  // Lock page scroll + use visual viewport-friendly layout while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
+
   const handleLeadCaptured = (leadData: LeadData) => {
     setShowContactForm(false);
     setLeadCaptured(true);
@@ -296,11 +306,33 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-        <Card className="w-full max-w-2xl h-[95vh] max-h-[800px] flex flex-col bg-card/95 backdrop-blur-md border-primary/30 shadow-glow-cyan">
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+      <div
+        className="fixed inset-0 z-50 flex items-stretch justify-center sm:items-center sm:p-4 md:p-6 bg-background/80 backdrop-blur-sm animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Ernst AI chat"
+      >
+        <Card
+          className={[
+            "flex w-full flex-col overflow-hidden bg-card/95 backdrop-blur-md",
+            // Mobile: edge-to-edge sheet using dynamic viewport height
+            "h-[100dvh] max-h-[100dvh] rounded-none border-0 shadow-none",
+            // Tablet/desktop: centered modal
+            "sm:h-[min(44rem,90dvh)] sm:max-h-[90dvh] sm:max-w-xl sm:rounded-2xl sm:border sm:border-primary/30 sm:shadow-glow-cyan",
+            "md:max-w-2xl",
+          ].join(" ")}
+        >
+          <div
+            className={[
+              "flex items-center justify-between border-b border-border/50",
+              "bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10",
+              "px-3 sm:px-4",
+              "pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-4",
+              "pb-3 sm:pb-4",
+            ].join(" ")}
+          >
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-primary/30 animate-glow-pulse flex-shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-primary/30 animate-glow-pulse flex-shrink-0">
                 <img
                   src={profilePic}
                   alt="Ernst AI"
@@ -320,38 +352,39 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
+              className="hover:bg-destructive/20 hover:text-destructive flex-shrink-0 h-10 w-10"
+              aria-label="Close chat"
             >
               <X className="w-5 h-5" />
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 p-3 sm:p-4">
-            <div className="space-y-4">
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 pb-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex gap-3 animate-fade-in ${
+                  className={`flex gap-2 sm:gap-3 animate-fade-in ${
                     message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
+                    <div className="hidden sm:block w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
                       <img
                         src={profilePic}
-                        alt="Ernst AI"
+                        alt=""
                         className="w-full h-full object-cover"
                       />
                     </div>
                   )}
                   <div
-                    className={`max-w-[90%] sm:max-w-[85%] rounded-lg p-3 ${
+                    className={`max-w-[86%] sm:max-w-[80%] rounded-2xl px-3 py-2.5 sm:p-3 ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border/50"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-card border border-border/50 rounded-bl-md"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">
+                    <p className="text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
                       {message.role === "assistant"
                         ? message.content
                             .replace(/\*\*/g, "")
@@ -396,6 +429,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <Button
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => setShowSimpleContactForm(true)}
                           >
                             <MessageSquare className="w-4 h-4 mr-2" />
@@ -404,6 +438,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                           <Button
                             size="sm"
                             variant="outline"
+                            className="w-full sm:w-auto"
                             onClick={handleScheduleMeeting}
                           >
                             <Calendar className="w-4 h-4 mr-2" />
@@ -412,6 +447,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="w-full sm:w-auto"
                             onClick={() => {
                               setMessages((prev) => {
                                 const next = [...prev];
@@ -433,19 +469,22 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       <div className="mt-3 p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
                         <p className="text-sm text-foreground flex items-start gap-2">
                           <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          Optional: drop your email in the chat if you want Ernst to follow up —
-                          or ignore this and keep asking questions.
+                          Optional: drop your email if you want Ernst to follow up — or keep
+                          asking questions.
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Input
                             type="email"
                             placeholder="you@company.com"
                             value={pendingEmail}
                             onChange={(e) => setPendingEmail(e.target.value)}
-                            className="text-sm"
+                            className="text-sm min-w-0"
+                            inputMode="email"
+                            autoComplete="email"
                           />
                           <Button
                             size="sm"
+                            className="w-full sm:w-auto shrink-0"
                             disabled={!pendingEmail.includes("@")}
                             onClick={() => void saveQuickLead(pendingEmail.trim())}
                           >
@@ -456,22 +495,22 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                     )}
                   </div>
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                    <div className="hidden sm:flex w-8 h-8 rounded-full bg-accent/20 items-center justify-center flex-shrink-0">
                       <User className="w-4 h-4 text-accent" />
                     </div>
                   )}
                 </div>
               ))}
               {isLoading && (
-                <div className="flex gap-3 justify-start animate-fade-in">
-                  <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
+                <div className="flex gap-2 sm:gap-3 justify-start animate-fade-in">
+                  <div className="hidden sm:block w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
                     <img
                       src={profilePic}
-                      alt="Ernst AI"
+                      alt=""
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="bg-card border border-border/50 rounded-lg p-3">
+                  <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md p-3">
                     <Loader2 className="w-4 h-4 animate-spin text-primary" />
                   </div>
                 </div>
@@ -482,22 +521,30 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
           <form
             onSubmit={handleSubmit}
-            className="p-3 sm:p-4 border-t border-border/50 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5"
+            className={[
+              "border-t border-border/50",
+              "bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5",
+              "px-3 sm:px-4 pt-3",
+              "pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-4",
+            ].join(" ")}
           >
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-end">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask me anything..."
                 disabled={isLoading}
-                className="flex-1 bg-input border-border/50 focus:border-primary text-sm sm:text-base"
+                className="flex-1 min-h-11 bg-input border-border/50 focus:border-primary text-base sm:text-sm"
+                autoComplete="off"
+                enterKeyHint="send"
               />
               <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan px-3 sm:px-4"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan h-11 w-11 sm:w-auto sm:px-4 shrink-0"
+                aria-label="Send message"
               >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Send className="w-5 h-5" />
               </Button>
             </div>
           </form>
