@@ -101,8 +101,8 @@ serve(async (req) => {
       "<b>Recent chat:</b>",
       `<pre>${escapeHtml(recent).slice(0, 2500)}</pre>`,
       "",
-      "<i>Reply to this message to talk to the visitor.</i>",
-      "<i>Send /done (as a reply) when finished.</i>",
+      "<i>Just type your reply here (or reply to this thread).</i>",
+      "<i>Send /done when finished.</i>",
     ].join("\n");
 
     const tgRes = await fetch(
