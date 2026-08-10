@@ -27,5 +27,5 @@ verify_jwt = false
 [functions.handoff-relay]
 verify_jwt = false
 
-[functions.telegram-webhook]
+[functions.ingest-avatar-kb]
 verify_jwt = false
