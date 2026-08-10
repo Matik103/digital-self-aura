@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../supabasePublic";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../supabasePublic.js";
 
 export const config = {
   runtime: "edge",
