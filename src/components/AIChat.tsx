@@ -2,7 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { X, Send, User, Loader2, Calendar, MessageSquare, Mail, Volume2 } from "lucide-react";
+import {
+  X,
+  Send,
+  User,
+  Loader2,
+  Calendar,
+  MessageSquare,
+  Mail,
+  Volume2,
+  Headphones,
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import ContactForm, { LeadData } from "./ContactForm";
@@ -12,18 +22,26 @@ import profilePic from "@/assets/profile-picture-edited.jpg";
 import { callFunction } from "@/lib/functions";
 import {
   extractEmail,
+  hasFormRequestIntent,
+  hasHandoffIntent,
   hasStrongContactIntent,
   hasStrongHrIntent,
 } from "@/lib/chatIntent";
 import { speakWithElevenLabs, stopSpeaking } from "@/lib/tts";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "ernst" | "system";
   content: string;
   showSoftOffer?: boolean;
   showHrCard?: boolean;
   showEmailAsk?: boolean;
+  remoteId?: string;
 }
+
+type HandoffState = {
+  token: string;
+  status: "waiting" | "active" | "closed";
+};
 
 interface AIChatProps {
   isOpen: boolean;
@@ -52,13 +70,76 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
   const [speakingKey, setSpeakingKey] = useState<string | null>(null);
   const [ttsLoadingKey, setTtsLoadingKey] = useState<string | null>(null);
+  const [handoff, setHandoff] = useState<HandoffState | null>(null);
+  const [handoffStarting, setHandoffStarting] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const seenRemoteIds = useRef<Set<string>>(new Set());
+  const pollAfterRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Poll Telegram ↔ web bridge while handoff is open
+  useEffect(() => {
+    if (!isOpen || !handoff || handoff.status === "closed") return;
+
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const res = await callFunction("handoff-relay", {
+          method: "POST",
+          body: JSON.stringify({
+            action: "poll",
+            token: handoff.token,
+            after: pollAfterRef.current,
+          }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const incoming = (data.messages || []) as Array<{
+          id: string;
+          role: "ernst" | "system";
+          content: string;
+          created_at: string;
+        }>;
+
+        if (data.status && data.status !== handoff.status) {
+          setHandoff((h) => (h ? { ...h, status: data.status } : h));
+        }
+
+        if (!incoming.length) return;
+
+        const fresh = incoming.filter((m) => !seenRemoteIds.current.has(m.id));
+        for (const m of fresh) seenRemoteIds.current.add(m.id);
+        const last = incoming[incoming.length - 1];
+        if (last?.created_at) pollAfterRef.current = last.created_at;
+
+        if (!fresh.length) return;
+
+        setMessages((prev) => [
+          ...prev,
+          ...fresh.map((m) => ({
+            role: m.role as Message["role"],
+            content: m.content,
+            remoteId: m.id,
+          })),
+        ]);
+      } catch {
+        // transient network — next tick retries
+      }
+    };
+
+    void poll();
+    const id = window.setInterval(() => void poll(), 2500);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [isOpen, handoff]);
 
   // Lock page scroll + use visual viewport-friendly layout while open
   useEffect(() => {
@@ -147,6 +228,96 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     });
   };
 
+  const startHandoff = async (transcript: Message[], triggerText?: string) => {
+    if (handoffStarting) return;
+    if (handoff && handoff.status !== "closed") return;
+    setHandoffStarting(true);
+    setIsLoading(true);
+    try {
+      const payloadMessages = [
+        ...transcript
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({ role: m.role, content: m.content })),
+        ...(triggerText
+          ? [{ role: "user" as const, content: triggerText }]
+          : []),
+      ];
+
+      const res = await callFunction("request-handoff", {
+        method: "POST",
+        body: JSON.stringify({
+          messages: payloadMessages,
+          conversationSummary,
+          visitorLabel: pendingEmail || "Website visitor",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Could not start live handoff");
+      }
+
+      seenRemoteIds.current = new Set();
+      pollAfterRef.current = new Date().toISOString();
+      setHandoff({ token: data.token, status: "waiting" });
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "system",
+          content:
+            "Connecting you to Ernst on Telegram. Stay on this chat — his replies will appear here. You can keep typing in the meantime.",
+        },
+      ]);
+      toast({
+        title: "Handoff started",
+        description: "Ernst was notified on Telegram.",
+      });
+    } catch (error) {
+      toast({
+        title: "Could not connect to Ernst",
+        description:
+          error instanceof Error ? error.message : "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setHandoffStarting(false);
+      setIsLoading(false);
+    }
+  };
+
+  const sendHandoffMessage = async (userMessage: string) => {
+    if (!handoff || handoff.status === "closed") return;
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setConversationSummary((s) => `${s}\nUser: ${userMessage}`);
+    setIsLoading(true);
+    try {
+      const res = await callFunction("handoff-relay", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "send",
+          token: handoff.token,
+          content: userMessage,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send");
+      }
+      if (data.status === "closed") {
+        setHandoff((h) => (h ? { ...h, status: "closed" } : h));
+      }
+    } catch (error) {
+      toast({
+        title: "Message not delivered",
+        description:
+          error instanceof Error ? error.message : "Try again",
+        variant: "destructive",
+      });
+      setMessages((prev) => prev.slice(0, -1));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const saveQuickLead = async (email: string, nameHint?: string) => {
     try {
       const response = await callFunction("save-lead", {
@@ -184,6 +355,21 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
   };
 
   const streamChat = async (userMessage: string) => {
+    if (handoff && handoff.status !== "closed") {
+      await sendHandoffMessage(userMessage);
+      return;
+    }
+
+    if (hasHandoffIntent(userMessage)) {
+      const withUser = [...messages, { role: "user" as const, content: userMessage }];
+      setMessages(withUser);
+      setInput("");
+      setConversationCount((c) => c + 1);
+      setConversationSummary((s) => `${s}\nUser: ${userMessage}`);
+      await startHandoff(messages, userMessage);
+      return;
+    }
+
     const emailInMessage = extractEmail(userMessage);
     if (emailInMessage && !leadCaptured && emailAskShown) {
       const newMessages = [...messages, { role: "user" as const, content: userMessage }];
@@ -205,7 +391,14 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     setConversationSummary(currentSummary);
 
     const strongIntent = hasStrongContactIntent(userMessage);
+    const formIntent = hasFormRequestIntent(userMessage);
     const hrIntent = hasStrongHrIntent(userMessage);
+
+    // Explicit form ask → open the form immediately (don't wait for CTA stack)
+    if (!leadCaptured && formIntent) {
+      setShowSimpleContactForm(true);
+      setSoftOfferShown(true);
+    }
 
     try {
       const response = await callFunction("ai-chat", {
@@ -285,6 +478,13 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
           setSoftOfferShown(true);
         } else if (
           !leadCaptured &&
+          formIntent &&
+          !softOfferShown
+        ) {
+          last.showSoftOffer = true;
+          setSoftOfferShown(true);
+        } else if (
+          !leadCaptured &&
           !emailAskShown &&
           nextCount >= 6 &&
           !strongIntent
@@ -311,11 +511,18 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || handoffStarting) return;
     const userMessage = input.trim();
     setInput("");
     void streamChat(userMessage);
   };
+
+  const handoffLive = Boolean(handoff && handoff.status !== "closed");
+  const subtitle = handoffLive
+    ? handoff?.status === "waiting"
+      ? "Live handoff · waiting for Ernst…"
+      : "Live with Ernst · via Telegram"
+    : "AI avatar · chat as long as you want";
 
   if (!isOpen) return null;
 
@@ -373,34 +580,55 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
               </div>
               <div className="min-w-0">
                 <h3 className="font-display text-sm sm:text-base font-semibold text-foreground truncate">
-                  Ernst AI
+                  {handoffLive ? "Ernst" : "Ernst AI"}
                 </h3>
                 <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
-                  AI avatar · chat as long as you want
+                  {subtitle}
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="hover:bg-destructive/20 hover:text-destructive flex-shrink-0 h-10 w-10"
-              aria-label="Close chat"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="hover:bg-destructive/20 hover:text-destructive flex-shrink-0 h-10 w-10"
+                aria-label="Close chat"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 pb-4">
-              {messages.map((message, index) => (
+              {messages.map((message, index) => {
+                const isVisitor = message.role === "user";
+                const isSystem = message.role === "system";
+                const isErnstLive = message.role === "ernst";
+                const isAi = message.role === "assistant";
+
+                if (isSystem) {
+                  return (
+                    <div
+                      key={message.remoteId || index}
+                      className="flex justify-center animate-fade-in"
+                    >
+                      <p className="max-w-[92%] text-center text-[11px] sm:text-xs text-muted-foreground px-3 py-1.5 rounded-full bg-muted/40 border border-border/40">
+                        {message.content}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
                 <div
-                  key={index}
+                  key={message.remoteId || index}
                   className={`flex gap-2 sm:gap-3 animate-fade-in ${
-                    message.role === "user" ? "justify-end" : "justify-start"
+                    isVisitor ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.role === "assistant" && (
+                  {(isAi || isErnstLive) && (
                     <div className="hidden sm:block w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
                       <img
                         src={profilePic}
@@ -411,13 +639,20 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                   )}
                   <div
                     className={`max-w-[86%] sm:max-w-[80%] rounded-2xl px-3 py-2.5 sm:p-3 ${
-                      message.role === "user"
+                      isVisitor
                         ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-card border border-border/50 rounded-bl-md"
+                        : isErnstLive
+                          ? "bg-card border border-accent/40 rounded-bl-md"
+                          : "bg-card border border-border/50 rounded-bl-md"
                     }`}
                   >
+                    {isErnstLive && (
+                      <p className="text-[10px] uppercase tracking-wide text-accent mb-1">
+                        Ernst · live
+                      </p>
+                    )}
                     <p className="text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {message.role === "assistant"
+                      {isAi || isErnstLive
                         ? message.content
                             .replace(/\*\*/g, "")
                             .replace(/\*/g, "")
@@ -425,7 +660,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                         : message.content}
                     </p>
 
-                    {message.role === "assistant" && message.content && (
+                    {isAi && message.content && (
                       <button
                         type="button"
                         onClick={() => speak(message.content, `m-${index}`)}
@@ -449,7 +684,7 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       </button>
                     )}
 
-                    {message.role === "assistant" && message.showHrCard && (
+                    {isAi && message.showHrCard && (
                       <HRTargeting
                         visible
                         onDismiss={() => {
@@ -464,11 +699,10 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       />
                     )}
 
-                    {message.role === "assistant" && message.showSoftOffer && (
+                    {isAi && message.showSoftOffer && (
                       <div className="mt-3 p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
                         <p className="text-sm text-foreground">
-                          If useful, you can leave a note for Ernst or book a call. Or just keep
-                          chatting.
+                          Use the options below anytime — leave a note, book a call, or talk live.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <Button
@@ -490,26 +724,19 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                           </Button>
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             className="w-full sm:w-auto"
-                            onClick={() => {
-                              setMessages((prev) => {
-                                const next = [...prev];
-                                next[index] = {
-                                  ...next[index],
-                                  showSoftOffer: false,
-                                };
-                                return next;
-                              });
-                            }}
+                            disabled={handoffStarting}
+                            onClick={() => void startHandoff(messages)}
                           >
-                            Keep chatting
+                            <Headphones className="w-4 h-4 mr-2" />
+                            Talk to Ernst
                           </Button>
                         </div>
                       </div>
                     )}
 
-                    {message.role === "assistant" && message.showEmailAsk && (
+                    {isAi && message.showEmailAsk && (
                       <div className="mt-3 p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
                         <p className="text-sm text-foreground flex items-start gap-2">
                           <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -538,13 +765,14 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
                       </div>
                     )}
                   </div>
-                  {message.role === "user" && (
+                  {isVisitor && (
                     <div className="hidden sm:flex w-8 h-8 rounded-full bg-accent/20 items-center justify-center flex-shrink-0">
                       <User className="w-4 h-4 text-accent" />
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
               {isLoading && (
                 <div className="flex gap-2 sm:gap-3 justify-start animate-fade-in">
                   <div className="hidden sm:block w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
@@ -572,19 +800,69 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
               "pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-4",
             ].join(" ")}
           >
+            {!handoffLive && (
+              <div className="mb-2.5 flex flex-wrap gap-1.5">
+                {!leadCaptured && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 text-xs"
+                    onClick={() => setShowSimpleContactForm(true)}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                    Leave contact
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={handleScheduleMeeting}
+                >
+                  <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                  Book a call
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  disabled={handoffStarting || isLoading}
+                  onClick={() => void startHandoff(messages)}
+                >
+                  {handoffStarting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  ) : (
+                    <Headphones className="w-3.5 h-3.5 mr-1.5" />
+                  )}
+                  Talk to Ernst
+                </Button>
+              </div>
+            )}
             <div className="flex gap-2 items-end">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything..."
-                disabled={isLoading}
+                placeholder={
+                  handoffLive
+                    ? "Message Ernst…"
+                    : "Ask me anything..."
+                }
+                disabled={isLoading || handoffStarting || handoff?.status === "closed"}
                 className="flex-1 min-h-11 bg-input border-border/50 focus:border-primary text-base sm:text-sm"
                 autoComplete="off"
                 enterKeyHint="send"
               />
               <Button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={
+                  !input.trim() ||
+                  isLoading ||
+                  handoffStarting ||
+                  handoff?.status === "closed"
+                }
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-cyan h-11 w-11 sm:w-auto sm:px-4 shrink-0"
                 aria-label="Send message"
               >

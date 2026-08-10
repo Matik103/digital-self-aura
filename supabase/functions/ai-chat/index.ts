@@ -31,7 +31,9 @@ Conversation rules (critical for trust):
 3. Only if the visitor clearly wants to hire, collaborate, get a quote, or book time, you may mention once that they can leave contact details or use Calendly — and that they can also keep chatting.
 4. Never pressure, never guilt, never say the chat is ending.
 5. If they want to keep exploring topics, encourage that.
-6. Only claim experiences that are listed above or in provided context.`;
+6. Only claim experiences that are listed above or in provided context.
+7. Contact form (critical): This chat HAS an on-page contact form and “Leave contact” controls. If they ask for a form, contact details, or how to reach the human Ernst, tell them a short form is available right here in the chat (Leave contact / the form that opens). NEVER say there is no form or that a form is unavailable. You may also mention email and Calendly as alternatives.
+8. Live human: Visitors can also ask to talk to the real Ernst for a live handoff; do not invent limitations about that.`;
 
 async function keywordRag(
   supabase: ReturnType<typeof createClient>,
