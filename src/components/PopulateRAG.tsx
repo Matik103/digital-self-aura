@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Database, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { callFunction } from "@/lib/functions";
 
 const PopulateRAG = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,16 +15,10 @@ const PopulateRAG = () => {
     setResult(null);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/populate-rag`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
+      const response = await callFunction("populate-rag", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to populate RAG database");

@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, Clock, Building2, User, Mail, Phone, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MeetingScheduler, { MeetingData } from "./MeetingScheduler";
+import { callFunction } from "@/lib/functions";
 
 interface ContactFormProps {
   onClose: () => void;
@@ -53,12 +54,8 @@ const ContactForm = ({ onClose, onLeadCaptured, conversationSummary, interestAre
 
     try {
       // Save lead to database
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-lead`, {
+      const response = await callFunction("save-lead", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
         body: JSON.stringify(formData),
       });
 

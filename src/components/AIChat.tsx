@@ -9,6 +9,7 @@ import ContactForm, { LeadData } from "./ContactForm";
 import SimpleContactForm, { SimpleContactData } from "./SimpleContactForm";
 import HRTargeting from "./HRTargeting";
 import profilePic from "@/assets/profile-picture-edited.jpg";
+import { callFunction } from "@/lib/functions";
 
 interface Message {
   role: "user" | "assistant";
@@ -135,21 +136,14 @@ const AIChat = ({ isOpen, onClose }: AIChatProps) => {
     setConversationSummary(currentSummary);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ 
-            messages: newMessages,
-            conversationSummary: currentSummary,
-            showLeadGeneration: true
-          }),
-        }
-      );
+      const response = await callFunction("ai-chat", {
+        method: "POST",
+        body: JSON.stringify({
+          messages: newMessages,
+          conversationSummary: currentSummary,
+          showLeadGeneration: true,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

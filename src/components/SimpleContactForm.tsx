@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { X, User, Mail, Building2, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { callFunction } from "@/lib/functions";
 
 interface SimpleContactFormProps {
   onClose: () => void;
@@ -52,12 +53,8 @@ const SimpleContactForm = ({ onClose, onContactSaved, conversationSummary }: Sim
       
       console.log("Sending contact data:", requestData);
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-lead`, {
+      const response = await callFunction("save-lead", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
         body: JSON.stringify(requestData),
       });
 

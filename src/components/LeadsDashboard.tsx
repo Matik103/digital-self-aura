@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Mail, Phone, Building2, User, Clock, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { callFunction } from "@/lib/functions";
 
 interface Lead {
   id: string;
@@ -33,12 +34,8 @@ const LeadsDashboard = () => {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-leads`, {
+      const response = await callFunction("get-leads", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
       });
 
       if (response.ok) {
