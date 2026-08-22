@@ -1,0 +1,32 @@
+# Supabase Free plan pauses projects after ~7 days without database activity.
+# This workflow pings Postgres directly (documents SELECT) every 3 days.
+# Docs: https://supabase.com/docs/guides/platform/free-project-pausing
+
+name: Keep Supabase alive
+
+on:
+  schedule:
+    # Every 3 days at 12:00 UTC — well inside the 7-day inactivity window
+    - cron: "0 12 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ping Supabase database (documents)
+        run: |
+          set -euo pipefail
+          SUPABASE_URL=$(sed -n "s/.*SUPABASE_URL = '\\([^']*\\)'.*/\\1/p" api/supabasePublic.ts)
+          SUPABASE_ANON_KEY=$(sed -n "s/.*SUPABASE_ANON_KEY = '\\([^']*\\)'.*/\\1/p" api/supabasePublic.ts)
+          code=$(curl -sS -o /tmp/ping.json -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/documents?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Accept: application/json")
+          echo "HTTP ${code} → ${SUPABASE_URL}"
+          cat /tmp/ping.json
+          test "${code}" = "200"
